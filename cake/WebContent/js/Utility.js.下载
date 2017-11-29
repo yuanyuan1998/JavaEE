@@ -1,0 +1,149 @@
+﻿Date.prototype.DateAdd = function (strInterval, Number) {
+    var dtTmp = this;
+    switch (strInterval) {
+        case 's':
+            return new Date(Date.parse(dtTmp) + (1000 * Number));
+        case 'n':
+            return new Date(Date.parse(dtTmp) + (60000 * Number));
+        case 'h':
+            return new Date(Date.parse(dtTmp) + (3600000 * Number));
+        case 'd':
+            return new Date(Date.parse(dtTmp) + (86400000 * Number));
+        case 'w':
+            return new Date(Date.parse(dtTmp) + ((86400000 * 7) * Number));
+        case 'q':
+            return new Date(dtTmp.getFullYear(), (dtTmp.getMonth()) + Number * 3, dtTmp.getDate(), dtTmp.getHours(), dtTmp.getMinutes(), dtTmp.getSeconds());
+        case 'm':
+            return new Date(dtTmp.getFullYear(), (dtTmp.getMonth()) + Number, dtTmp.getDate(), dtTmp.getHours(), dtTmp.getMinutes(), dtTmp.getSeconds());
+        case 'y':
+            return new Date((dtTmp.getFullYear() + Number), dtTmp.getMonth(), dtTmp.getDate(), dtTmp.getHours(), dtTmp.getMinutes(), dtTmp.getSeconds());
+    }
+}
+function parseISO8601(dateStringInRange) {
+    var isoExp = /^\s*(\d{4})-(\d\d)-(\d\d)\s*$/,
+        date = new Date(NaN), month,
+        parts = isoExp.exec(dateStringInRange);
+
+    if (parts) {
+        month = +parts[2];
+        date.setFullYear(parts[1], month - 1, parts[3]);
+        if (month != date.getMonth() + 1) {
+            date.setTime(NaN);
+        }
+    }
+    return date;
+}
+// 格式化时间
+function formatTime(now) {
+    var d = new Date(now);
+    var year = d.getYear();
+    var month = d.getMonth() + 1;
+    var date = d.getDate();
+    var hour = d.getHours();
+    var minute = d.getMinutes();
+    var second = d.getSeconds();
+    return year + "-" + month + "-" + date + "   " + hour + ":" + minute + ":" + second;
+}
+
+// 格式化日期
+function formatDate(now) {
+    debugger;
+    var d = new Date(now);
+    var year = d.getYear();
+    var month = d.getMonth() + 1;
+    var date = d.getDate();
+    return year + "-" + month + "-" + date;
+}
+
+
+Date.prototype.format = function (format) {
+    var o = {
+        "M+": this.getMonth() + 1, //month 
+        "d+": this.getDate(),    //day 
+        "h+": this.getHours(),   //hour 
+        "m+": this.getMinutes(), //minute 
+        "s+": this.getSeconds(), //second 
+        "q+": Math.floor((this.getMonth() + 3) / 3),  //quarter 
+        "S": this.getMilliseconds() //millisecond 
+    }
+    if (/(y+)/.test(format)) format = format.replace(RegExp.$1,
+    (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+    for (var k in o) if (new RegExp("(" + k + ")").test(format))
+        format = format.replace(RegExp.$1,
+      RegExp.$1.length == 1 ? o[k] :
+        ("00" + o[k]).substr(("" + o[k]).length));
+    return format;
+}
+
+// 将json格式的时间转换为时间字符
+function formatJsonTime(jsonDate) {
+    if (jsonDate != null) {
+        var rDate = new Date(parseInt(jsonDate.replace("/Date(", "").replace(")/", ""), 10));
+        return rDate.format("yyyy-MM-dd HH:mm:ss");
+    }
+    return null;
+}
+
+// 将json格式的时间转换为日期字符
+function formatJsonDate(jsonDate) {
+    if (jsonDate != null) {
+        var rDate = new Date(parseInt(jsonDate.replace("/Date(", "").replace(")/", ""), 10));
+        return rDate.format("yyyy-MM-dd");
+    }
+    return null;
+}
+
+//tdy添加 将字符串转换成日期进行比较
+function checkDate(checkStartDate, checkEndDate) {
+    var arys1 = new Array();
+    var arys2 = new Array();
+    if (checkStartDate != null && checkEndDate != null) {
+        arys1 = checkStartDate.split('-');
+        arys2 = checkEndDate.split('-');
+        var results = false;
+        if (parseInt(arys1[0]) > parseInt(arys2[0])) {
+            results = true;
+        }
+        if (parseInt(arys1[0]) >= parseInt(arys2[0]) && parseInt(arys1[1]) > parseInt(arys2[1])) {
+            results = true;
+        }
+        if (parseInt(arys1[0]) >= parseInt(arys2[0]) && parseInt(arys1[1]) >= parseInt(arys2[1]) && parseInt(arys1[2]) > parseInt(arys2[2])) {
+            results = true;
+        }
+        if (results) {
+            //Dialog.alert("结束时间必须大于开始时间");
+            return false;
+        }
+        return true;
+    }
+}
+
+function removeCookie(sName) {
+    this.setCookie(sName, "", -1);
+}
+
+function getCookie(sName) {
+    // cookies are separated by semicolons
+    var aCookie = document.cookie.split("; ");
+    for (var i = 0; i < aCookie.length; i++) {
+        // a name/value pair (a crumb) is separated by an equal sign
+        var aCrumb = aCookie[i].split("=");
+        if (sName == aCrumb[0])
+            return decodeURIComponent(aCrumb[1]);
+    }
+    // a cookie with the requested name does not exist
+    return "";
+}
+
+function setCookie(sName, sValue, days, domain) {
+    sValue = encodeURIComponent(sValue);
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toGMTString();
+    }
+    var acookie = sName + "=" + sValue + expires + "; path=/" + (domain ? "; domain=" + domain : "");
+    // alert(acookie); //test
+    document.cookie = acookie;
+}

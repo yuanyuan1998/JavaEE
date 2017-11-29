@@ -1,0 +1,1209 @@
+﻿function GetQueryString(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return unescape(r[2]);
+    return null;
+}
+//选择生日牌
+function choseBrithCard(obj) {
+    var brithCard = $(obj).prev().find("input").val();
+    if (brithCard==undefined) {
+        brithCard = $(obj).prev().find("textarea").val()
+    }
+    $(".brith_card_list").hide();
+    $(obj).parent().parent().parent('.brith_card_list').prev().html(brithCard + '<em class="select-ico"></em>');
+}
+//优惠
+function changeStyle(el) {
+    $(".d_shi_list li").removeClass("cur");
+    $(el).parent().addClass("cur");
+    var isck = $(el).find("input").attr("isck");     //类型
+    //var curDiscount = $("body input[name=r7]:first").closest(".dd_jiao_box").find("div:first>label");//当前折扣
+    if (isck == 1) {
+        $(".d_shi_list label input").attr("isck", "1");//默认是1
+        $(el).find("input").attr("isck", "0");
+        $(el).find("input").attr("checked", true);
+       
+    } else {
+        $(el).find("input").attr("isck", "1");
+        $(el).find("input").attr("checked", false);
+        //如果选中了优惠券则取消勾选
+        if ($("body input[name=r7]:checked").length > 0) {
+            $("body input[name=r7]:checked").attr("checked", false);
+            $(".dd_jiao_box").find("div:first>label").text("0");
+            sumPriceActual();
+        }
+    };
+};
+//验证代金券
+function validateVoucher(el) {
+    //alert(123);
+    var code = $(el).prev().val();
+    if (code == "") {
+        AddPopup("请输入代金券验证码");
+        popup($(".p_box1"));
+        return;
+    }
+    var parm = new Object();
+    parm["code"] = code;
+    parm["pid"] = $("#tableBuy1 tr").eq(1).find("td").eq(1).attr("pid");
+    parm["weight"]=$(".d_title i").text();
+    parm["placeId"]=$("#PlaceId").val();
+    parm["MId"] = $("#tableBuy1 tr").eq(1).find("td").eq(1).attr("mid");
+    $.ajax({
+        type: "POST",
+        url: "ValidateVoucher",
+        data: parm,
+        dataType: "json",
+        success: function (data) {
+            if (data.isOK == true) {
+                $(".dd_jiao_box").find("div:first>label").text(setNumPoint(data.message));
+                $("#lastVoucher").val(data.message);
+                $("#lastVoucherCode").val(code);
+                $(el).next().text("验证成功");
+            } else {
+                $(".dd_jiao_box").find("div:first>label").text(setNumPoint(0));
+                $(el).next().text("验证失败");
+                $("#lastVoucher").val(0);
+                $("#lastVoucherCode").val("");
+            }
+            sumPriceActual();
+        }
+    });
+}
+//选择代金券项
+function choiceVoucher(el) {
+    if ($(el).val().length > 0) {
+        $("body input[name=r7]").eq(2).closest("div").find("label>input:last").attr("checked", true);
+        $(".d_shi_sub").closest(".dd_jiao_box").find("div:first>label").text(setNumPoint($("#lastVoucher").val()));
+        sumPriceActual();
+    }
+}
+$(function () {
+    //默认数量
+    $(".dd_num").find("input").val(GetQueryString("num"));
+    sumPriceActual();
+       
+    //使用积分代金券会员卡切换
+        $(".d_shi_list label").click(function () {
+
+            //设置
+            //var curDiscount = $("body input[name=r7]:first").closest(".dd_jiao_box").find("div:first>label");//当前折扣
+            var curDiscount = $(".dd_jiao_box").find("div:first>label");//当前折扣
+            //cc("curDiscount"+curDiscount.text());
+            if ($(".d_shi_list label input:checked").length == 0) {
+                curDiscount.text(setNumPoint(0));
+                $(".d_shi_con .d_shi_sub").hide();
+                return;
+            }
+
+
+            var index = $(".d_shi_list label").index($(this));  //第几个
+            var index2 = $(this).attr("value");     //类型
+
+            $(".d_shi_con .d_shi_sub:eq(" + index + ")").show().siblings().hide();  //显示对应的框
+            //计算金额
+            if (index2 == 0) {
+                var curIntegral = $(".d_shi_list label:first>span.zi_888").text();
+                //取消选择
+                if ($(".d_shi_list label:first input:checked").length == 0) {
+                    curDiscount.text(setNumPoint(0));
+                } else {
+                    var a = parseInt(curIntegral / 20);
+                    curDiscount.text(setNumPoint(a));
+                }
+            } else if (index2 == 1) {
+                var el = $("body input[name=r7]:checked");//当前选中的代金券项
+                var elAll = $("body input[name=r7]");      //所有代金券
+                var curPos = elAll.index(el);                                                       //选中代金券的位置
+                //选择使用线下的代金券号
+                if (curPos == elAll.length - 1 && curPos != -1) {
+                    //判断线下的代金券是否验证
+                    if ($("#lastVoucher").val() != 0)
+                        curDiscount.text(setNumPoint($("#lastVoucher").val()));//线下的代金券号表示的金额
+                    else
+                        curDiscount.text(setNumPoint(0));//代金券号不对
+                }
+                else if (el.length > 0) {
+                    //选中了代金券，选中了优惠选项并且类型是 使用代金券
+                    //使用线上的代金券号
+                    var temp = el.closest("dd").find("span>label").text();
+                    curDiscount.text(setNumPoint(temp));
+                } else {
+                    //没有选择代金券号
+                    curDiscount.text(setNumPoint(0));
+                }
+
+            } else if (index2 == 2) {
+                if ($("#lastMember").val() != 0) {
+                    curDiscount.text(setNumPoint($("#lastMember").val()));//上次验证保存的折扣
+                } else
+                    curDiscount.text(setNumPoint(0));//会员卡号失效
+            } else {
+                curDiscount.text(setNumPoint(0));
+                $(".d_shi_con .d_shi_sub").hide();
+            }
+
+            sumPriceActual();
+        });
+    //代金券选项
+        $("body input[name=r7]:not(:last)").closest("label").click(function () {
+            $(this).closest(".dd_jiao_box").find("div:first>label").text(setNumPoint($(this).next(".zi_red").find("label").text()));
+            sumPriceActual();
+        });
+
+    //线下代金券选项
+        $("body input[name=r7]:last").closest("label").click(function () {
+            $(this).closest(".dd_jiao_box").find("div:first>label").text(setNumPoint($("#lastVoucher").val()));
+            $(this).closest(".d_yan").find("input[type='text']").val($("#lastVoucherCode").val());
+            sumPriceActual();
+        });
+        //配件选项鼠标移动上去显示产品信息
+        $(".d_xuan_list li").each(function(){
+            $(this).hover(function(){
+                $(this).find(".dd_subbox").show();
+            },function(){
+                $(this).find(".dd_subbox").hide();
+            })
+        });
+        $(".pj_tiao").hover(
+            function(){
+                $(this).find("div").show().addClass("animated rollIn");
+            },
+            function(){
+                $(this).find("div").hide().removeClass("animated rollIn");	
+            });
+        ////积分代金券
+        //$(".d_shi_list li").click(function(index){
+        //    $(".d_shi_con .d_shi_sub:eq("+ index +")").show.siblings().hide();
+        //})
+        //选择生日牌
+        $(".brith_card_display").click(function () {
+            if ($(this).siblings('.select-ul-area').is(":hidden")) {
+                $(this).siblings(".select-ul-area").show();
+            } else {
+                $(this).siblings(".select-ul-area").hide();
+            };
+        });
+        $(".brith_card_by_self").click(function () {
+            $(this).hide().next("li").show();
+        })
+        $(".brith_card_item").on("click", function () {
+            $(".brith_card_list").hide();
+            $(this).parent().parent('.brith_card_list').prev().html($(this).find(".sua-item").text() + '<em class="select-ico"></em>');
+
+        })
+        //数量增减
+        $(document).on('click', '.dd_num >a', function () {
+            //alert(111111);
+            var value = parseInt($(this).siblings(":text").val());
+            if (isNaN(value))
+                value = 1;
+
+            if ($(this).attr("class") != "jian") {
+                if (value > 1)
+                    value--;
+                $(this).siblings(":text").val(value);
+            } else {
+                if (value >= 20)
+                    value = 20;
+                else {
+                    value++;
+                }
+
+                $(this).siblings(":text").val(value);
+            }
+            var p = $(this).closest('td').prev().find("span").text();
+            
+            //var p = $("#tableBuy1 tbody td").eq(1).find("span").text();
+            var pa = setNumPoint(eval(value * p));
+            //$("#tableBuy1 tbody td").eq(3).find("span").text(pa);
+            $(this).closest('td').next().find("span").text(pa);
+            sumPriceActual();
+            //
+            event.stopPropagation();
+        });
+        //$('.tabl_list').on('keyup', '.dd_num :text', function () {
+        //    var value = $(this).val();
+        //    if (isNaN(value) || value < 1) {
+        //        $(this).val(1);
+        //        value = 1;
+        //    }
+        //    else if (value > 20) {
+        //        $(this).val(20)
+        //        value = 20;
+        //    }
+        //    //var p = $("#tableBuy1 tbody td").eq(1).find("span").text();
+        //    var p = $(this).closest('td').prev().find("span").text();
+        //    var pa = setNumPoint(eval(value * p));
+        //    $(this).closest('td').next().find("span").text(pa);
+        //   // $("#tableBuy1 tbody td").eq(3).find("span").text(pa);
+        //    sumPriceActual();
+        //});
+      var  DayLimit = 0;
+        //默认时间
+        var d = new Date();    
+        var seperator1 = "-";
+        var seperator2 = ":";
+        var month = d.getMonth() + 1;
+        var hournow = d.getHours();
+        var strDate = d.getDate();
+        if (hournow >= DayLimit && DayLimit != 0) {
+            strDate++;
+        }
+        if (month >= 1 && month <= 9) {
+            month = "0" + month;
+        }
+        if (strDate >= 0 && strDate <= 9) {
+            strDate = "0" + strDate;
+        }
+        var str = d.getFullYear() + "-" + month + "-" + strDate;
+        $("#DeliveryTimeDay").val(str);
+       
+    //改变日期事件
+        //$("#DeliveryTimeDay").blur(function () {
+        //    setdeliverydate(0);
+        //    $("#DeliveryTimeHour option:first").prop("selected", 'selected');
+    //});
+        $(".mdzt").hide();
+    //$(".newdizhi").hide();
+        $(".icon_area_add").click(function () {
+            $(".join_cont").show();
+            $(".newdizhi").toggle();
+        });
+    //配送上门只有宝安区
+        if ($(".of_time_select input[name='r2']:checked").parent().text().replace(/^\s+|\s+$/g, "") == "配送上门") {
+            $("#countySelect2").find("option").each(function () {
+                if ($(this).val() != 2145) {
+                    $(this).remove();
+                }
+            })
+        }
+    //门店自提送货上门的切换
+        $(".of_time_select label").has("input[name='r2']").each(function (index) {
+            $(this).click(function () {
+                if ($(".of_time_select input[name='r2']:checked").parent().text().replace(/^\s+|\s+$/g, "") == "门店自提") {
+                    $("#deliveryTime h2").text("自提时间");
+                    $("#deliveryTime dt").text("自提时间：");
+
+                    $(".shsm").hide();
+                    $("body").find("i[name='ck4']").removeClass().addClass("checkout");
+                    $("body").find("i[name='ck4']:first").removeClass().addClass("checkin");
+                    $(".of_time_select dd:first").show();
+                    $(".mdzt").show();
+                } else {
+                    //配送上门只有宝安区
+                    $("#countySelect2").find("option").each(function () {
+                        if ($(this).val()!=2145) {
+                            $(this).remove();
+                        }
+                    })
+                    $("#deliveryTime h2").text("配送时间");
+                    $("#deliveryTime dt").text("配送时间：");
+
+                    $(".shsm").show();
+                    $(".mdzt").hide();
+                }
+                $(".pei_box:eq(" + index + ")").show().siblings(".pei_box").hide();
+                //setdeliverytime();      //根据配送方式设置配送时间
+            })
+        });
+    //默认配送方式
+        if ($(".of_time_select input[name='r2']:checked").parent().text().replace(/^\s+|\s+$/g, "") == "门店自提") {
+
+            $("#deliveryTime h2").text("自提时间");
+            $("#deliveryTime dt").text("自提时间：");
+
+            $(".shsm").hide();
+            $("body").find("i[name='ck4']").removeClass().addClass("checkout");
+            $("body").find("i[name='ck4']:first").removeClass().addClass("checkin");
+            $(".of_time_select dd:first").show();
+            $(".mdzt").show();
+
+            $(".pei_box:eq(0)").show().siblings(".pei_box").hide();
+            //setdeliverytime();      //根据配送方式设置配送时间
+        } else {
+            $("#deliveryTime h2").text("配送时间");
+            $("#deliveryTime dt").text("配送时间：");
+
+            $(".shsm").show();
+            $(".mdzt").hide();
+            $(".pei_box:eq(1)").show().siblings(".pei_box").hide();
+            //setdeliverytime();      //根据配送方式设置配送时间
+        }
+
+        if (UserId) {
+
+            //获取地址信息
+            $("#addAddress").hide();
+            $("#userAddress").show();
+            getAddress(1, $("#PlaceId").val());
+           
+        } else {
+            $(".fanke").show();          //访客则显示
+            $(".icon_area_add").hide(); //添加新地址
+            $("#addAddress").show();        //添加地址选项
+            $("#addAddress dl:last").hide();//确定保存按键
+        }
+});
+
+var arrHour = new Array();
+var f = "";
+var ordercount = 0;
+function buy1() {
+    if (ordercount>0) {
+        AddPopup("每个用户每天只能秒杀一次");
+        popup($(".p_box1"));
+        return;
+    }
+    if ($("#PriceActual").text() < 0) {
+        AddPopup("页面未加载完成");
+        popup($(".p_box1"));
+        return;
+    }
+    if ($("#PriceActual").text() != sumPriceActual(2)) {
+        AddPopup("金额不对");
+        popup($(".p_box1"));
+        return;
+    }
+
+    var curUserId = "";
+    $.ajax({
+        type: "POST",
+        url: "GetCurUserId",
+        dataType: "text",
+        async: false,    //获取当前Id
+        success: function (data) {
+            curUserId = data;
+        }
+    });
+
+    if (curUserId != UserId && curUserId != 12) {
+        AddPopupLogin(0, "当前用户登陆失效，是否重新登陆？");
+        return false;
+    }
+
+    
+
+    var el = $("body input[name=r7]").eq(2).closest("div").find("label>input:checked");//当前选中的代金券项
+    var elAll = $("body input[name=r7]").eq(2).closest("div").find("label>input");      //所有代金券
+    var curPos = elAll.index(el);                                                       //选中代金券的位置
+    ////选择使用线下的代金券号
+    //if (curPos == elAll.length - 1 && curPos != -1) {
+    //    var lastVoucher = $("body input[name=r7]").eq(2).closest("div").find(" input[type='text']").val();
+    //    if (lastVoucher == "") {
+    //        AddPopup("代金券号不能为空");
+    //        popup($(".p_box1"));
+    //        return;
+    //    }
+    //    if ($("#lastVoucherCode").val() != lastVoucher) {
+    //        AddPopup("代金券号不对");
+    //        popup($(".p_box1"));
+    //        return;
+    //    }
+    //}
+    $(".tj_jd .co_cheng").text("￥" + $(".dd_jiao_box").find("div:first>label").text());
+   
+    //$(".tj_jd").find("span:last").text("优惠金额：");
+    //$(".tj_jd").find("span:last").text("  积分抵现：");
+    var indextr = 0;
+    $("#tableBuy1 tr").each(function () {
+        indextr++;
+        if (indextr != 1 && indextr != 2) {
+            var ProductAttr = $(this).data("ProductAttr");
+            var temp1 = '<tr class="d_xuan_list2" indexpid="{Id}" id="li-{Id}"><td valign="middle"><a href="javascript:void(0);"><img width="48" height="48" src="{TitleImg}" class="d_pic"></a><span class="d_title">{ProductName}<br> <i></i></span></td><td></td><td></td><td iscookie="{IsCookie}" show="{PriceShow}" mid="{MId}" pid="{PId}"><b>￥</b><span>{PriceUnit}</span></td><td>{amount}</td><td class="co_cheng"><b>￥</b><span>{PriceAmount}</span></td> </tr>';
+            temp1 = temp1.replace(/{TitleImg}/g, $(this).find("td").eq(0).find("img").attr("src"));
+            temp1 = temp1.replace(/{ProductName}/g, $(this).find("td").eq(0).find("span").text());
+            temp1 = temp1.replace(/{IsCookie}/g, $(this).find("td").eq(1).attr("iscookie"));
+            temp1 = temp1.replace(/{MId}/g, $(this).attr("indexpid"));
+            temp1 = temp1.replace(/{Id}/g, $(this).attr("indexpid"));
+            temp1 = temp1.replace(/{PriceUnit}/g, $(this).find("td").eq(1).find("span").text());
+            temp1 = temp1.replace(/{PriceShow}/g, $(this).find("td").eq(1).find("span").text());
+            temp1 = temp1.replace(/{PriceAmount}/g, $(this).find("td").eq(3).find("span").text());
+            temp1 = temp1.replace(/{amount}/g, $(this).find(".dd_num a").siblings(":text").val());
+            temp1 = temp1.replace(/{PId}/g, $(this).find("td").eq(1).attr("pid"));  
+            $("#tableBuy2").append(temp1);
+            $("#li-" + $(this).attr("indexpid")).data("ProductAttr", ProductAttr);
+            sumPriceActual();
+        }
+    })
+       
+    //var timearea = mapPlaceTime.get($("#PlaceId").val());
+    //if (timearea == undefined) {
+    //   // alert("首页左上 切换城市要先生成");
+    //}
+    
+    var sptime = [];
+    //if (timearea != undefined) {
+    //    sptime = timearea.split("-");
+    //}
+    var indextemp = 0;
+    //把预约时间存放在数组里
+    $("#DeliveryTimeHour").children().each(function (index, value) {
+        if (sptime.length == 2) {
+
+            var hour = $(value).val().substring(0, 2);
+            if (hour >= parseInt(sptime[0]) && hour <= sptime[1]) {
+                if ($(value).val().substring(0, 5).indexOf(sptime[1] + ":30") > -1) {
+                    return false;
+                }
+                arrHour[indextemp] = $(value).val();
+                indextemp++;
+
+            }
+        }
+
+    });
+
+    if (sptime.length == 2) {
+        if (parseInt(sptime[0]) == 8) {
+            arrHour.unshift("08:00~09:00", "08:30~09:30");
+        }
+    }
+    
+    //timeblur2($("#DeliveryTimeHour").val());
+    $("#DeliveryTimeHour option:first").prop("selected", 'selected');
+   
+    $("#buy2_co_cheng").text($("#buy1_co_cheng").text());
+    $("#buy2_dd_num").text($("#tableBuy1 .dd_num").find("input").val());
+    $("#buy1").hide();
+    $("#buy2").show();
+
+    $(window).scrollTop(0, 0);
+    sumPriceActual();
+}
+
+
+
+//下订单
+var buy2Submit = 0;
+function buy2(){
+    //alert("buy1"+123)
+    var parm = new Object();
+    var parmProduct = new Object();
+    var OrderName = "";
+    var OrderPhone = "";
+    var TakeName = "";
+    var TakePhone = "";
+    var Addr = "";
+    //配送方式( 0.门店自提  1.配送上门)
+    var delivertype = $("body").find("input[name=r2]:checked").parent().text().replace(/^\s+|\s+$/g, "");
+    if (delivertype == "配送上门" || delivertype == "送货上门") {
+        parm["DeliveryType"] = 1;
+        //获取UserId,可能sesseion 已经失效但UserId不为空不为12
+        var curUserId = "";
+        $.ajax({
+            type: "POST",
+            url: "GetCurUserId",
+            dataType: "text",
+            async: false,    //获取当前Id
+            success: function (data) {
+                curUserId = data;
+            }
+        });
+
+        if (curUserId != UserId && curUserId != 12) {
+            AddPopupLogin(0, "当前用户登陆失效，是否重新登陆？");
+            return false;
+        }
+        //判断是否登录
+        if (UserId) {
+            $("#userAddress").show();
+            if ($("#userAddress>.area_list").length == 0) {
+                AddPopup("请先添加收货地址");
+                popup($(".p_box1"));
+                buy2Submit = 0;
+                return false;
+            }
+            var DetailAddress = $("#userAddress .area_list input:checked").closest(".area_list").attr("buildingsign").replace(/^\s+|\s+$/g, "");
+            Addr = $("#userAddress .area_list input:checked").closest(".area_list").attr("Addr").replace(/^\s+|\s+$/g, "");
+            OrderName = UserName;
+            OrderPhone = UserPhone;
+            TakeName = $("#userAddress .area_list input:checked").closest(".area_list").find("li").eq(1).text().replace(/^\s+|\s+$/g, "");
+            TakePhone = $("#userAddress .area_list input:checked").closest(".area_list").find("li").eq(2).text().replace(/^\s+|\s+$/g, "");
+            var addrTemp = TakeName + "/" + TakePhone + "/" + Addr + "/" + DetailAddress;
+            parm["Addr"] = addrTemp;
+            parm["Province"] = $("#userAddress .area_list input:checked").closest(".area_list").attr("provincename").replace(/^\s+|\s+$/g, "");
+            parm["City"] = $("#userAddress .area_list input:checked").closest(".area_list").attr("cityname").replace(/^\s+|\s+$/g, "");
+            parm["Area"] = $("#userAddress .area_list input:checked").closest(".area_list").attr("areaname").replace(/^\s+|\s+$/g, "");
+            var addSplit = addrTemp.split('/');
+            if (addSplit.length != 4) {
+                AddPopup("地址格式不对");
+                popup($(".p_box1"));
+                buy2Submit = 0;
+                return false;
+            }
+            console.log($("#userAddress .area_list input:checked").closest(".area_list").attr("areaname").replace(/^\s+|\s+$/g, ""));
+        } else {
+            $("#userAddress").hide();
+            OrderName = $(".join_cont").find(".of_text").eq(0).val().replace(/^\s+|\s+$/g, "");
+            OrderPhone = $(".join_cont").find(".of_text").eq(1).val().replace(/^\s+|\s+$/g, "");
+            TakeName = $(".join_cont").find(".of_text").eq(2).val().replace(/^\s+|\s+$/g, "");
+            TakePhone = $(".join_cont").find(".of_text").eq(3).val().replace(/^\s+|\s+$/g, "");
+            Addr = $(".join_cont").find(".of_text").eq(4).val().replace(/^\s+|\s+$/g, "");
+            parm["Addr"] = TakeName + "/" + TakePhone + "/" + Addr + "/" + $(".join_cont").find(".of_text").eq(5).val().replace(/^\s+|\s+$/g, "");
+            parm["Province"] = $("#provinceSelect2").find("option:selected").text().replace(/[ ]/g, "");
+            parm["City"] = $("#citySelect2").find("option:selected").text().replace(/[ ]/g, "");
+            parm["Area"] = $("#countySelect2").find("option:selected").text().replace(/[ ]/g, "");
+            parm["areaid"] = $("#countySelect2").find("option:selected").val().replace(/[ ]/g, "");
+            if (!OrderName) {
+                $(".join_cont").find(".of_text").eq(0).next().html("<font color='#da646f'>收货人姓名不能为空!</fong>");
+                jumpScorll($(".join_cont").find(".of_text").eq(0).next());
+                return false;
+            }
+            if (OrderPhone.length < 1) {
+                $(".join_cont").find(".of_text").eq(1).next().html("<font color='#da646f'>不能为空</fong>");
+                jumpScorll($(".join_cont").find(".of_text").eq(0).next());
+                return false;
+            }
+            if (!isPhone(OrderPhone)) {
+                $(".join_cont").find(".of_text").eq(1).next().html("<font color='#da646f'>手机格式不正确!</fong>");
+                jumpScorll($(".join_cont").find(".of_text").eq(1).next());
+                return false;
+            }
+            if (!TakeName) {
+                $(".join_cont").find(".of_text").eq(2).next().html("<font color='#da646f'>取货人姓名不能为空!</fong>");
+                jumpScorll($(".join_cont").find(".of_text").eq(2).next());
+                return false;
+            }
+            if (TakePhone.length < 1) {
+                $(".join_cont").find(".of_text").eq(3).next().html("<font color='#da646f'>不能为空</fong>");
+                jumpScorll($(".join_cont").find(".of_text").eq(3).next());
+                return false;
+            }
+            if (!isPhone(TakePhone)) {
+                $(".join_cont").find(".of_text").eq(3).html("<font color='#da646f'>手机格式不正确!</fong>");
+                jumpScorll($(".join_cont").find(".of_text").eq(3).next());
+                return false;
+            }
+            if (!Addr) {
+                $(".join_cont").find(".of_text").eq(4).next().html("<font color='#da646f'>不能为空!</fong>");
+                jumpScorll($(".join_cont").find(".of_text").eq(4).next());
+                return false;
+            }
+        }
+    } else if (delivertype == "门店自提") {
+        parm["DeliveryType"] = 0;
+        //获取UserId,可能sesseion 已经失效但UserId不为空不为12
+        var curUserId = "";
+        $.ajax({
+            type: "POST",
+            url: "GetCurUserId",
+            dataType: "text",
+            async: false,    //获取当前Id
+            success: function (data) {
+                curUserId = data;
+            }
+        });
+
+        if (curUserId != UserId && curUserId != 12) {
+            AddPopupLogin(0, "当前用户登陆失效，是否重新登陆？");
+            return false;
+        }
+        parm["Province"] = $("#provinceSelect").find("option:selected").text().replace(/[ ]/g, "");
+        parm["City"] = $("#citySelect").find("option:selected").text().replace(/[ ]/g, "");
+        parm["Area"] = $("#countySelect").find("option:selected").text().replace(/[ ]/g, "");
+        parm["areaid"] = $("#countySelect").find("option:selected").val().replace(/[ ]/g, "");
+        if (UserId) {
+            OrderName = UserName;
+            OrderPhone = UserPhone;
+            
+        } else {
+            OrderName = $(".pei_box").eq(0).find(".of_text").eq(0).val().replace(/^\s+|\s+$/g, "");
+            OrderPhone = $(".pei_box").eq(0).find(".of_text").eq(1).val().replace(/^\s+|\s+$/g, "");
+            if (!OrderName) {
+                $(".pei_box").eq(0).find(".of_text").eq(0).next().html("<font color='#da646f'>收货人姓名不能为空!</fong>");
+                jumpScorll($(".pei_box").eq(0).find(".of_text").eq(0).next());
+                return false;
+            }
+
+            if (OrderPhone.length < 1) {
+                $(".pei_box").eq(0).find(".of_text").eq(1).next().html("<font color='#da646f'>不能为空</fong>");
+                jumpScorll($(".pei_box").eq(0).find(".of_text").eq(1).next());
+                return false;
+            }
+            if (!isPhone(OrderPhone)) {
+                $(".pei_box").eq(0).find(".of_text").eq(1).next().html("<font color='#da646f'>手机格式不正确!</fong>");
+                jumpScorll($(".pei_box").eq(0).find(".of_text").eq(1).next());
+                return false;
+            }
+        }
+        TakeName = $(".pei_box").eq(0).find(".of_text").eq(2).val().replace(/^\s+|\s+$/g, "");
+        TakePhone = $(".pei_box").eq(0).find(".of_text").eq(3).val().replace(/^\s+|\s+$/g, "");
+        parm["SId"] = $(".pei_box").eq(0).find(".storeSelect").find("option:selected").val();
+        if (!TakeName) {
+            $(".pei_box").eq(0).find(".of_text").eq(2).next().html("<font color='#da646f'>取货人姓名不能为空!</fong>");
+            jumpScorll($(".pei_box").eq(0).find(".of_text").eq(2).next());
+            return false;
+        }
+        if (TakePhone.length < 1) {
+            $(".pei_box").eq(0).find(".of_text").eq(3).next().html("<font color='#da646f'>不能为空</fong>");
+            jumpScorll($(".pei_box").eq(0).find(".of_text").eq(3).next());
+            return false;
+        }
+        if (!isPhone(TakePhone)) {
+            $(".pei_box").eq(0).find(".of_text").eq(3).next().html("<font color='#da646f'>手机格式不正确!</fong>");
+            jumpScorll($(".pei_box").eq(0).find(".of_text").eq(3).next());
+            return false;
+        }
+    }
+    parm["OrderName"] = OrderName;
+    parm["OrderPhone"] = OrderPhone;
+    parm["TakeName"] = TakeName;
+    parm["TakePhone"] = TakePhone;
+    //优惠类型，优惠金额
+    var discount = $("body input[name=r6]:checked").parent().attr("value");
+    if (discount == 1) {
+        parm["Discount"] = 1;
+        //判断代金券是线上还是线下
+
+        var curCk7 = $("body input[name=r7]").index($("body input[name=r7]:checked"));
+        var lenCk7 = $("body input[name=r7]").length;
+        if (curCk7 == lenCk7 - 1) {
+            parm["DiscountrCode"] = $("body input[name=r7]:last").closest("div").find("input[type='text']").val();//最后一个选项code
+        } else {
+            parm["DiscountrCode"] = $("body input[name=r7]:checked").val();     //除最后一个的其它选项的code 代金券号码
+        }
+        parm["DiscountMoney"] = $(".dd_jiao_box").find("div:first>label").text();  //抵扣金额
+
+    } else if (discount == 2) {
+        parm["Discount"] = 2;
+    }
+    else if (discount == 0) {
+        parm["Discount"] = 0;
+        parm["DiscountrCode"] = $(".d_shi_list label:first>span.zi_888").text().replace(/[ ]/g, "");    //抵扣积分
+        parm["DiscountMoney"] = parseInt($(".d_shi_list label:first>span.zi_888").text().replace(/[ ]/g, "")) / 20;  //抵扣金额
+    } else {
+        parm["Discount"] = -1;       //抵扣类型
+        parm["DiscountMoney"] = 0;     //抵扣金额 默认0
+    }
+    //PayWay   支付方式( 0.现金  1,刷卡  3,支付宝 4.团购密码 5.银联 6.购物卡 13.微信 )
+    //StatePay 支付状态(0,未付款  1.货到付款  2. 已付款  3.退款)
+    //var payway = $("body").find("i[name=ck4].checkin").parent().text();
+    var payway2 = $("body").find("input[name=r3]:checked").parent().text();
+    parm["StatePay"] = 1;
+    parm["PayWay"] = 0;
+    if (payway2 == "支付宝") {
+        parm["PayWay"] = 3;     //支付宝
+        parm["StatePay"] = 0;   //未支付
+    } else if (payway2 == "微信支付") {
+        parm["PayWay"] = 13;     //支付宝
+        parm["StatePay"] = 0;   //未支付
+    }
+    if (payway2 == "现金") {
+        parm["PayWay"] = 0;
+        AddPopup("不支持此种支付方式");
+        popup($(".p_box1"));
+        return;
+    } else if (payway2 == "刷银联卡") {
+        parm["PayWay"] = 5;
+        AddPopup("不支持此种支付方式");
+        popup($(".p_box1"));
+        return;
+    } else if (payway2 == "代金券") {
+        parm["PayWay"] = 15; //代金券
+
+    }
+
+ 
+    parm["CurDateHour"] = $("#DeliveryTimeHour").val().substring(0, 2);
+    parm["ExplorerInfo"] = GetOSInfo() + " " + getExplorerInfo().version;
+    //parm["CurDate"] = NewDate(CurentTime2(1)).DateAdd("d", 1).format("yyyy-MM-dd");
+    parm["CurDate"] = $("#DeliveryTimeDay").val();
+    parm["Remark"] = $("#RemarkSys").val();                //备注信息
+    parm["ProductName"] = $("#ProductName").val();              //产品名称
+    parm["ProductType"] = $("#TypeId").val();
+   
+    if ($(".benison").text() == "无" || $(".benison").text() == "请选择生日牌") {
+        parm["Benison"] = "不需要";
+    } else {
+        parm["Benison"] = $(".benison").text();
+    }
+    if ($(".benisonCard").text() == "无" || $(".benisonCard").text() == "请选择祝福贺卡") {
+        parm["BenisonCard"] = "不需要";
+    } else {
+        parm["BenisonCard"] = $(".benisonCard").text();
+    }
+
+    parm["Brochure"] = 0;
+
+
+    parm["DeliveryTime"] = $("#DeliveryTimeDay").val() + " " + $("#DeliveryTimeHour").find("option:selected").text();
+    var jump = 680;
+
+
+
+    //订单详情
+    var a = $("#tableBuy1 tbody td").eq(2).find("input").val();
+    var p = $("#tableBuy1 tbody td").eq(1).find("span").text();
+    parm["PId"] =  $("#tableBuy1 tbody").find("td").eq(1).attr("pid");
+    parm["MId"] = $("#tableBuy1 tbody").find("td").eq(1).attr("mid");
+    parm["Amount"] = a;
+    parm["PriceUnit"] = p;  //单价
+    parm["PriceCost"] = p;  //成本价
+    parm["PriceSum"] = $("#tableBuy1 tbody td").eq(3).find("span").text();
+    parm["PlaceId"] = $("#PlaceId").val();
+    parm["Type"] = $("#Type").val();
+    parm["DiscountPoint"] = $("#Discount").val();   //产品折扣
+    parm["PriceAmount"] = sumPriceActual(1);                    //订单金额
+    parm["PriceActual"] = $("#PriceActual").text();             //实际订单金额(减去折扣)
+    var OrderPeiList = "[";
+    var peiCount = $(".d_xuan_list2").length;
+    //订单配件
+    $.each($(".d_xuan_list2"), function (index, value) {
+        var d = $(this).data("ProductAttr");
+        //生日牌
+        if ($(this).find(".d_title").text().replace(/[ ]/g, "") == "数字蜡烛") {
+            OrderPeiList += "{PId:" + d.PId + ",MId:" + d.MId + ",Amount:" + d.Amount + ",PriceUnit:" + d.PriceUnit + ",PriceCost:" + d.PriceCost + ",PriceAmount:" + d.PriceAmount + ",StatePay:" + parm["StatePay"] + ",BenisonCard:'" + $("#peijian-" + $(this).attr("indexpid").replace(/[^0-9]/ig, "")).val() + "'}";
+        } else if ($(this).find(".d_title").text().replace(/[ ]/g, "") == "蛋糕帽") {
+            OrderPeiList += "{PId:" + d.PId + ",MId:" + d.MId + ",Amount:" + d.Amount + ",PriceUnit:" + d.PriceUnit + ",PriceCost:" + d.PriceCost + ",PriceAmount:" + d.PriceAmount + ",StatePay:" + parm["StatePay"] + ",BenisonCard:'" + $("#peijian-" + $(this).attr("indexpid").replace(/[^0-9]/ig, "")).val() + "'}";
+        } else {
+            OrderPeiList += "{PId:" + d.PId + ",MId:" + d.MId + ",Amount:" + d.Amount + ",PriceUnit:" + d.PriceUnit + ",PriceCost:" + d.PriceCost + ",PriceAmount:" + d.PriceAmount + ",StatePay:" + parm["StatePay"] + ",BenisonCard:'不需要'}";
+        }
+        //不为最后一条且配件大于1条
+        if ((index != peiCount - 1) || (index == 0 && peiCount > 1)) {
+            OrderPeiList += ",";
+        }
+    });
+
+
+    OrderPeiList += "]";
+
+    parm["OrderPeiList"] = OrderPeiList;
+    //配件金额
+    if ($(".d_xuan_list2").length > 0) {
+        var PeijianMoney = 0;
+        $.each($(".d_xuan_list2"), function () {
+            PeijianMoney += parseFloat($(this).find(".co_cheng span").text());
+        });
+        parm["PeijianMoney"] = PeijianMoney;
+    } else {
+        parm["PeijianMoney"] = 0;
+    }
+
+    //return;
+    //cc(parm); //return;
+
+    //防止重复提交
+    if (buy2Submit == 1) {
+        return;
+    }
+    
+    buy2Submit = 1;
+    $("#submit_order").text("提交订单中...");
+    var temp = "";
+   
+    var URL = "Buy2Tran";
+    $.ajax({
+        type: "POST",
+        url: "Buy2Tran",
+        data: parm,
+        dataType: "json",
+        success: function (data) {
+
+            if (data.isOK == true) {
+                console.log(data);
+                if (data.message.Id > 0) {
+
+                    temp += "<strong>客服热线：0755-0000000</strong><br>";
+                    temp += "订单编号：" + data.message.No + "<br>";
+                    temp += "预约时间：<font color='red'>" + data.message.DeliveryTime + "</font><br>";
+                    temp += "下单人姓名：" + data.message.OrderName + "　　";
+                    temp += "下单人手机：" + data.message.OrderPhone + "<br>";
+                    temp += "取货人姓名：" + data.message.TakeName + "　　";
+                    temp += "取货人手机：" + data.message.TakePhone + "<br>";
+
+                    $("#returnOrderInfo").html(temp);
+
+
+                    AddCoverLayer();
+                    popup($(".p_box41"));
+                    $(".p_box41 .submit_order").focus();
+                    /*     data.message      还是   data.message.Id         */
+                    if ($(".d_xuan_list>li").has("i[name=ck7].checkin").length == 0) {
+                        peijian = 1;
+                    }
+
+                    var parm3 = new Object();
+                    var iscookie = $("#tableBuy1 tbody td").eq(1).attr("iscookie");
+                    if ($("#Type").val() == 0 && iscookie == 0 && checkDate('2015-06-28', CurentTime2(1)) && checkDate(CurentTime2(1), '2015-06-30')) {
+                        //parm3.Money = parseFloat($("#PriceActual").text()) - 20;
+                        parm3.Money = parseFloat(parm['PriceActual']) - 20;
+                    } else {
+                        //parm3.Money = $("#PriceActual").text();
+                        parm3.Money = parm['PriceActual'];
+                    }
+                    parm3.OrderId = data.message.Id;
+                    parm3.OrderName = $("#tableBuy1 td:first span").text();
+
+                    parm3Temp = parm3;
+                    PayWayTemp = parm["PayWay"];
+
+                    //如果执行事务则不需要添加订单配件
+                    if (URL == "Buy2Tran") {
+                        return;
+                    }
+
+                    //请联系我
+                    $('#ContantUs').live('click', function () {
+                        $(".p_box41").hide();
+                        //buy2Submit = 0;
+                        //$(".submit_order").eq(0).text("提交预约信息");
+
+                        $.ajax({
+                            type: "POST",
+                            url: "/Base/ContantUs",
+                            data: { OrderId: data.message.Id },
+                            dataType: "json",
+                            success: function (data) {
+                                location.href = location.href;
+                                //if(data.isOK==true){
+                                //    location.href=location.href;
+                                //}
+                            },
+                            error: function (err) { }
+                        });
+
+                    });
+                }
+            } else {
+
+                buy2Submit = 0;
+                $("#submit_order").text("提交订单");
+                if (data.message == '订单提交出错' || data.message == "程序出错") {
+                    //$('.login_btn_succese').live('click', function () {
+                    //    location.href = location.href;
+                    //});
+                }
+
+                if (data.message == "当天预约人数已满,请选择其它日期") {
+                    data.message = "抱歉，商家今天订单已满，无法今天配送，请预约其它时间，谢谢！";
+                    //$('.login_btn_succese').live('click', function () {
+                    //    jumpScorll($("#DeliveryTimeDay"));
+                    //    setTimeout(function () {
+                    //        $("#DeliveryTimeDay").focus();
+                    //    }, 500);
+
+                    //});
+                } else if (data.message == "当前用户充值卡余额不够") {
+                    data.message = "当前用户充值卡余额不够,可选择其他支付方式";
+
+                    //$('.login_btn_succese').live('click', function () {
+                    //    setTimeout(function(){
+                    //        $("#DeliveryTimeDay").focus();
+                    //    },500);
+
+                    //});
+                    
+                }
+                AddPopup(data.message);
+                popup($(".p_box1"));
+            };
+        },
+        error: function (err) { }
+     
+    });
+   
+}
+//计算总金额
+function sumPriceActual(flag) {
+    var xj = parseFloat($("#tableBuy1 tbody td").eq(1).find("span").text()) * parseFloat($("#tableBuy1 tbody td").eq(2).find("input").val());       //小计
+
+
+
+    var temp = $(".dd_jiao_box").find("div:first>label").text();
+    var dis = parseFloat(temp == "" ? "0" : temp);    //折扣价钱
+    //cc(temp);
+    var pei = 0;        //配件价钱
+    $(".d_xuan_list1").each(function () {
+        pei += parseFloat($(this).children(".co_cheng").find("span").text());
+    });
+
+    var sum = eval(xj + pei - dis);
+    //如果有推荐选则
+    var re = 0;
+    if ($(".zuhe_list label>input:checked").length > 0) {
+        $(".zuhe_list").each(function () {
+            if ($(this).find("label>input:checked").length > 0) {
+                re += setNumFormat($(this).find("b").text());
+            }
+        });
+    }
+
+    if (re > 0) {
+        sum += re;
+    }
+
+    //运费
+    var freightLimit = $("#FreightLimit").val();
+    var freight = $("#Freight").val();
+    if (freightLimit > 0 && freight > 0) {
+        if (sum < freightLimit) {
+            sum = setNumFormat(sum) + setNumFormat(freight);
+            $("#PriceFreight").text(setMoneyFormat(freight));
+        } else {
+            $("#PriceFreight").text("0.00");
+        }
+    };
+    var iscookie = $("#tableBuy1 tbody td").eq(1).attr("iscookie");
+    if (iscookie == 0 && checkDate('2015-06-28', CurentTime2(1)) && checkDate(CurentTime2(1), '2015-06-30')) {
+        $(".d_dan_result h3").show();
+        $(".d_dan_result h3").text("下单成功金额立减20元")
+    }
+
+    if (flag) {
+        if (flag == 2) {
+            return setMoneyFormat(sum); //实际价钱, 不算折扣
+        }
+        if ($("#PriceFreight").text() == "0.00" || $("#PriceFreight").text() == "") {
+            sum = setMoneyFormat(xj + pei + re);           //总金额
+        } else {
+            sum = setMoneyFormat(xj + pei + re + setNumFormat(freight));           //总金额+运费
+        }
+
+        return sum;
+    }
+    $("#tableBuy1 tbody td").eq(3).find("span").text(setMoneyFormat(xj));
+    $("#PriceActual").text(setMoneyFormat(sum));
+    $(".zi_red b").text(setMoneyFormat(sum));
+}
+//订单提交成功弹窗
+function verifyOrder() {
+   
+    $(".p_box41").hide();    //关闭弹窗
+    //如果是支付宝支付
+    if (PayWayTemp == 3 && parm3Temp.Money != "" && parm3Temp.OrderId != "") {
+        //cc(parm3.OrderId);
+        $.ajax({
+            type: "POST",
+            url: "Pay",
+            data: parm3Temp,
+            dataType: "json",
+            success: function (data2) {
+                if (data2.isOK == true) {
+
+                    $("body").append(data2.message);
+
+                    $("#buy1").hide();
+                    $("#buy2").hide();
+                    $("#buy3").show();
+                }
+            }
+        });
+
+    } else if (PayWayTemp == 13 && parm3Temp.Money != "" && parm3Temp.OrderId != "") {
+      
+        //微信支付
+        location.href = "/Product/WxNativePay?out_trade_no=" + parm3Temp.OrderId;//total_fee="+parm3Temp.Money+"&
+
+    } else {
+        //配件添加完后跳转
+        location.href = "Buy3?OrderId=" + parm3Temp.OrderId;
+        return;
+        setInterval(function () {
+            if (peijian == 1) {
+                cc(peijian);
+                location.href = "Buy3?OrderId=" + parm3Temp.OrderId;
+            }
+        }, 800);
+    };
+}
+
+//////////////////////// 事件加载  ////////////////////////////
+//使用新地址的选项
+   
+
+
+setTimeout(function(){
+    //tt();
+},1000);
+//测试数据
+function tt(){
+    //$("#buy1").hide();
+    //$("#buy2").show();
+    //buy1();
+    //jumpScorll($(".of_zhifu"));
+    $("body").find("i[name='ck4']").removeClass().addClass("checkout");
+    $("body").find("i[name='ck4']:last").removeClass().addClass("checkin");
+    $(".of_tabbox dd:first").hide(200);
+    $(".of_tabbox dd:last").show(200);
+    $("body").find("i[name='ck4']:last").closest("dt").next().find("input:first").attr("checked", true);
+    var myDate = new Date();
+
+    $(".join_cont .of_text").eq(0).val("测试:");
+    $(".join_cont .of_text").eq(1).val("15718246205");
+    $(".join_cont .of_text").eq(2).val("这是测试数据");
+    $(".join_cont .of_text").eq(3).val("15718246205");
+    $(".join_cont .of_text").eq(4).val("地址");
+    $(".join_cont .of_text").eq(5).val("建筑");
+   // $("#addAddress>dl").eq(2).find("select").eq(2).find("option:nth-child(2)").attr("selected", "selected");
+
+}
+//添加配件 
+function openAttr(el, id) {
+    
+    $(".p_box2").hide();
+    $(".openAttrMask" + id).show();
+    popup($(".openAttr-" + id));        //弹窗
+    
+}
+//退出配件选择
+function closeAttr(el, id, name) {
+
+    //配件生日牌
+    if (name == "数字蜡烛") {
+
+        if ($("#peijian-" + id).val().length == 0) {
+            AddPopup("请输入生日牌对应的数字");
+            popup($(".p_box1"));
+            return;
+        }
+        if ($("#peijian-" + id).val().length != $(".openAttr-" + id).find("input:last").val()) {
+            AddPopup("所选数字长度与数量不相符");
+            popup($(".p_box1"));
+            return;
+        }
+
+    }
+
+    if (id) {
+        $("#openAttrProduct-" + id).text($(".openAttr-" + id).find(".price>b").text());//产品价钱显示
+        $("#li-" + id).find('label>i').removeClass().addClass("checkin");
+        sumPriceActual();
+        getProductAttr(id);
+    };
+    $(el).closest('.popup_box').hide();
+    $(el).prev().hide();
+}
+//把当前选中蛋糕配件的参数附加到li
+function getProductAttr(id) {
+
+    var temp = '<tr class="d_xuan_list1" indexpid="{Id}" id="li1-{Id}"><td valign="middle"><a href="javascript:void(0);"><img width="48" height="48" src="/Upload/Product/Show/Source/{TitleImg}" class="d_pic"></a><span class="d_title">{ProductName}<br> <i></i></span></td><td iscookie="{IsCookie}" show="{PriceShow}" mid="{MId}" pid="{PId}"><b>￥</b><span>{PriceUnit}</span></td><td><span class="dd_num2" style="display:none;">{amount}</span><span class="dd_num"><a class="add" href="javascript:">-</a><input name="" type="text" value="{amount}"><a class="jian" href="javascript:">+</a></span></td><td class="co_cheng"><b>￥</b><span>{PriceAmount}<span></td><td><a href="javascript:" class="pro_del" onclick="delProductAttr({Id})"></a></td> </tr>'; 
+
+    setTimeout(function () {
+        var ProductAttr = {};
+        var price = $(".openAttr-" + id).find(".guige_list a.cur").attr("price");
+        ProductAttr.MId = id;
+        ProductAttr.PId = $(".openAttr-" + id).find(".guige_list a.cur").attr("pid");
+        //ProductAttr.OId = "";
+        ProductAttr.Amount = $(".openAttr-" + id).find(".numjiajian input").val();              //不延迟这个可以读到
+        ProductAttr.PriceUnit = setMoneyFormat(price);   //不延迟这个读取不到
+        ProductAttr.PriceCost = setMoneyFormat(price);
+        ProductAttr.PriceAmount = $(".openAttr-" + id).find(".d_pro_info b").text();
+        
+        temp = temp.replace(/{TitleImg}/g, $(".openAttr-" + id).find("#titpic").val());
+        temp = temp.replace(/{ProductName}/g, $(".openAttr-" + id).find(".zi_666").text());
+        temp = temp.replace(/{IsCookie}/g, 1);
+        temp = temp.replace(/{MId}/g, id);
+        temp = temp.replace(/{Id}/g, id);
+
+        temp = temp.replace(/{PriceUnit}/g, setMoneyFormat(price));
+        temp = temp.replace(/{PriceShow}/g, setMoneyFormat(price));
+        temp = temp.replace(/{PriceAmount}/g, $(".openAttr-" + id).find(".d_pro_info b").text());
+        temp = temp.replace(/{amount}/g, $(".openAttr-" + id).find(".numjiajian input").val());
+        temp = temp.replace(/{PId}/g, $(".openAttr-" + id).find(".guige_list a.cur").attr("pid"));
+        
+        var boo = 0;
+        $("#tableBuy1 tr").each(function () {
+            if ($(this).attr("indexpid") == id) {
+                
+                var value = $(this).find(".dd_num a").siblings(":text").val();
+                if (isNaN(value) || value < 1) {
+                    $(this).find(".dd_num a").siblings(":text").val(1);
+                    value = 1;
+                }
+                else if (value > 20) {
+                    $(this).find(".dd_num a").siblings(":text").val(20);
+                    value = 20;
+                } else {
+                    value++;
+                }
+                $(this).find(".dd_num a").siblings(":text").val(value);
+                var p = $(this).find("td").eq(1).find("span").text();
+                var pa = setNumPoint(eval(value * p));
+                $(this).find("td").eq(3).find("span").text(pa);
+                $("#li1-" + id).data("ProductAttr", ProductAttr);
+                sumPriceActual();
+                boo = 1;
+                return false;
+            } 
+        })
+        if (boo==0) {
+            $("#tableBuy1").append(temp);
+            $("#li1-" + id).data("ProductAttr", ProductAttr);
+            sumPriceActual();
+        }
+       
+        //cc(ProductAttr);
+    }, 500);
+}
+//删除配件
+function delProductAttr(id) {
+    
+    $("#tableBuy1 tr").each(function () {
+        if ($(this).attr("indexpid")==id) {
+            $(this).remove();
+            sumPriceActual();
+        }
+    })
+}
+
+//当前时间
+function CurentTime2(flag) {
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = now.getMonth() + 1;
+    var day = now.getDate();
+    var hh = now.getHours();
+    var mm = now.getMinutes();
+    var ss = now.getSeconds();
+
+    var clock = year + "-";
+    if (month < 10) clock += "0";
+    clock += month + "-";
+    if (day < 10) clock += "0";
+    clock += day + " ";
+    if (hh < 10) clock += "0";
+    clock += hh + ":";
+    if (mm < 10) clock += '0';
+    clock += mm + ":";
+    if (ss < 10) clock += '0';
+    clock += ss;
+
+    if (flag) {
+        clock = clock.substring(0, 10);
+    }
+    return (clock)
+}
+
+//设置小数点后两位数 定义js相乘小数位不对的情况 如 30*0.12=3.59 改为3.6
+function setNumFormat(value, pointNum) {
+    if (!pointNum)
+        pointNum = 2;
+    var result = Math.round(parseFloat(value) * Math.pow(10, pointNum)) / Math.pow(10, pointNum);
+    return result;
+}
+
+function setMoneyFormat(value, pointNum) {
+    if (!pointNum)
+        pointNum = 2;
+    var result = Math.round(parseFloat(value) * Math.pow(10, pointNum)) / Math.pow(10, pointNum);
+    return setNumPoint(result);
+}
+//设置小数点后两位数
+function setNumPoint(val) {
+    var s = val + "";
+    var str = '';
+    var sp = s.split(".");
+    if (sp.length > 1)
+        if (sp[1].length >= 2)
+            str = s.substring(0, s.indexOf(".") + 3);
+        else if (sp[1].length == 1)
+            str = s.substring(0, s.indexOf(".") + 3) + "0";
+        else
+            str = s + ".00";
+    else
+        str = s + ".00";
+
+    return str;
+}

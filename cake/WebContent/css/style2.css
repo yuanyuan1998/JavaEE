@@ -1,0 +1,127 @@
+﻿@charset "utf-8";
+/* CSS Document */
+* {
+	margin: 0;
+	padding: 0;
+}
+body {
+	margin: 0;
+	font-family: "helvetica neue", arial, sans-serif;
+	font-size: 12px;
+	background:#f1f1f1;
+	
+}
+ul li {
+	list-style-type: none;
+}
+a, i, em, ins, input, span, b {
+	display: inline-block;
+	vertical-align: middle;
+	text-decoration: none;
+	font-style: normal;
+}
+a {
+	color: #666;
+	text-decoration: none;
+	transition: all ease-in 0.2s;
+}
+a:hover {
+	transition: all ease-out 0.2s;
+	text-decoration:none;
+}
+.spacer {
+	clear: both;
+	font-size: 0;
+	line-height: 0;
+}
+.mar1{
+	margin:1em;
+	}
+.co_cheng,.zi_red{
+	color:#be8242;
+	}
+.co_ju{
+	color:#c89f4f;
+	}
+
+.co_a9{
+	color:#a9a9a9;
+	}
+.co_f80{
+	color:#f80;
+	}
+.co_666{
+	color:#666;
+	}
+.bg_write{
+	background:#fff;
+	
+	}
+.f08{
+	font-size:0.8em;
+	}
+@font-face {
+	font-family: 'font_kravitz';
+	src: url('../fonts/font_kravitz-webfont.eot');
+	src: url('../fonts/font_kravitz-webfont.eot?#iefix') format('embedded-opentype'),  url('../fonts/font_kravitz-webfont.woff') format('woff'),  url('../fonts/font_kravitz-webfont.ttf') format('truetype'),  url('../fonts/font_kravitz-webfont.svg#font_kravitz') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+.container{
+	width:1200px;
+	margin:0 auto;
+	padding:0;
+	}
+/*5列*/
+.col-lg-2dot4 {
+position: relative;
+min-height: 1px;
+padding-right: 15px;
+padding-left: 15px;
+}
+@media (max-width: 1200px) {
+.col-lg-2dot4 {
+float: left;
+}
+.col-lg-2dot4 {
+width: 20%;
+}
+.col-lg-pull-2dot4 {
+right: 20%;
+}
+.col-lg-push-2dot4 {
+left: 20%;
+}
+.col-lg-offset-2dot4 {
+margin-left: 20%;
+}
+}
+/*头部*/
+/*.check0_box{
+	width:3em;
+	height:2em;
+	display:inline-block;
+	}
+.check0_on{
+	background:url(../images/btn_check_06.png) center center no-repeat;
+	background-size:100% auto;
+	}
+.check0_off{
+	background:url(../images/btn_check_03.png) center center no-repeat;
+	background-size:100% auto;
+	}.icon_yz{
+	background:#eee;
+	border-radius:3px;
+	padding:0.5em 1em;
+	margin: 0em 0 0.1em;
+	border-radius: 25px;
+	}
+.yam{
+	background:#fff;
+	border:#ddd solid 1px;
+	padding:0.5em 0em;
+	border-radius:3px;
+	text-align:center;
+	width:8em;
+	margin-left:0.5em;
+	}*/

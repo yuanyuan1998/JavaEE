@@ -1,0 +1,324 @@
+﻿var provinceId = -1; //省id
+var cityId = -1; //市id
+var countyId = -1; //县或区id
+var storeId = -1; //分店
+var getCityListUrl = ""; //获得市列表地址
+var getCountyListUrl = ""; //获得区或县列表地址
+var getStoreListUrl = ""; //获得区或县列表地址
+var getStoreAddressUrl = ""; //获得地址
+var getTownListUrl = ""; //获得区或县列表
+
+//绑定市列表
+function bindCityList(provinceId, citySelectObj, selectCityId) {
+
+    $.ajax({
+        async: false,
+        url: getCityListUrl + "?provinceId=" + provinceId + "&url=" + window.location.href,
+        type: "GET",
+        //data: { ProjectId: projectid, pid: '@ViewData["pid"]' },
+        //dataType: "text",
+        success: function (data) {
+           
+            var cityList = eval("(" + data + ")");
+            var curCityChoice = $(citySelectObj).attr("id");
+            if (cityList.length > 0) {
+             
+                var optionStr = "<option value='-1'>请选择</option>";
+                for (var i = 0; i < cityList.length; i++) {
+                    //增加城市修改
+                    if (cityList[i].ishide == 1 && curCityChoice == "citySelect2") {
+                        optionStr = optionStr + "<option value='" + cityList[i].id + "'>" + cityList[i].name + "</option>";
+                    } else {
+
+                        //门店自提只有深圳和常德有
+                        if ((cityList[i].name.indexOf("深圳市") > -1 || cityList[i].name.indexOf("常德市") > -1) && curCityChoice == "citySelect") {
+                            optionStr = optionStr + "<option value='" + cityList[i].id + "'>" + cityList[i].name + "</option>";
+                        }
+                    }
+
+                }
+                citySelectObj.html(optionStr);
+                if (selectCityId == undefined)
+                    selectCityId = -1;
+                citySelectObj.find("option[value=" + selectCityId + "]").attr("selected", true);
+            } else {
+                alert("加载市列表时出错！");
+            }
+        }
+    }); 
+}
+
+//绑定县或区列表
+function bindCountyList(cityId, countySelectObj, selectCountyId) {
+    $.ajax({
+        async: false,
+        url: getCountyListUrl + "?cityId=" + cityId,
+        type: "GET",
+        //data: { ProjectId: projectid, pid: '@ViewData["pid"]' },
+        //dataType: "text",
+        success: function (data) {
+            var countyList = eval("(" + data + ")");
+            var curCountySelect = $(countySelectObj).attr("id");
+            
+            if (countyList.length > 0) {
+                //增加城市修改
+                var optionStr = "<option value='-1'>请选择</option>";
+                for (var i = 0; i < countyList.length; i++) { 
+                    if (countyList[i].ishide == 1) {
+                        optionStr = optionStr + "<option value='" + countyList[i].id + "'>" + countyList[i].name + "</option>";
+                    }
+
+                }
+
+                countySelectObj.html(optionStr);
+                if (selectCountyId == undefined)
+                    selectCountyId = -1;
+                countySelectObj.find("option[value=" + selectCountyId + "]").attr("selected", true);
+
+                //某些活动要隐藏区 && curCountySelect == "countySelect"
+                if ($("#Web").val() == 2012) {
+                    //$("#countySelect option:gt(3)").hide();
+                    $("#countySelect option:gt(3)").remove();
+                    $("#countySelect2 option:gt(3)").remove();
+                }
+
+
+            } else {
+                if (cityId == 247) {
+                    alert("东莞没有市")
+                } else {
+                    alert("加载县或区列表时出错！");
+                }
+            }
+        }
+    });
+    //$.get(getCountyListUrl + "?cityId=" + cityId, function (data) {
+    //    var countyList = eval("(" + data + ")");
+    //    if (countyList.length > 0) {
+    //        var optionStr = "<option value='-1'>请选择</option>";
+    //        for (var i = 0; i < countyList.length; i++) {
+    //            optionStr = optionStr + "<option value='" + countyList[i].id + "'>" + countyList[i].name + "</option>";
+    //        }
+    //        countySelectObj.html(optionStr);
+    //        if (selectCountyId == undefined)
+    //            selectCountyId = -1;
+    //        countySelectObj.find("option[value=" + selectCountyId + "]").attr("selected", true);
+    //    } else {
+    //        alert("加载县或区列表时出错！");
+    //    }
+    //});
+}
+
+//绑定分店列表
+function bindStoreList(areaId, countySelectObj, selectCountyId) {
+   
+    var project = $("#project").find('option:selected').attr("value");
+   
+    //if (project == undefined)
+    //{
+    //    return;
+    //}
+   
+    $.ajax({
+        async: false,
+        url: getStoreListUrl + "?areaId=" + areaId+"&project="+project,
+        type: "GET",
+        success: function (data) {
+            var countyList = eval("(" + data + ")");
+            
+            if (countyList.length > 0) {
+                var optionStr = "<option value='-1' selected='selected'>请选择</option>";
+                for (var i = 0; i < countyList.length; i++) {
+                    optionStr = optionStr + "<option value='" + countyList[i].id + "'>" + countyList[i].name + "</option>";
+                }
+                countySelectObj.html(optionStr);
+                if (selectCountyId == undefined)
+                    selectCountyId = -1;
+                //countySelectObj.find("option[value=" + selectCountyId + "]").attr("selected", true);
+               
+            } else {
+                //var optionStr = "<option value='-1'>请选择</option>";
+                $(".storeSelect").html("<option value='-1'>请选择</option>");
+                $(".of_dizhi_show").html("");
+               // alert("此地区暂无分店！");
+            }
+        }
+    });
+    //$.get(getStoreListUrl + "?areaId=" + areaId, function (data) {
+    //    var countyList = eval("(" + data + ")");
+    //    if (countyList.length > 0) {
+    //        var optionStr = "<option value='-1'>请选择</option>";
+    //        for (var i = 0; i < countyList.length; i++) {
+    //            optionStr = optionStr + "<option value='" + countyList[i].id + "'>" + countyList[i].name + "</option>";
+    //        }
+    //        countySelectObj.html(optionStr);
+    //        if (selectCountyId == undefined)
+    //            selectCountyId = -1;
+    //        countySelectObj.find("option[value=" + selectCountyId + "]").attr("selected", true);
+    //    } else {
+    //        //var optionStr = "<option value='-1'>请选择</option>";
+    //        $(".storeSelect").html("<option value='-1'>请选择</option>");
+    //        $(".of_dizhi_show").html("");
+    //        alert("此地区暂无分店！");
+    //    }
+    //});
+}
+
+//获取分店地址
+function bindStoreAddress(Id, el) { 
+    $.get(getStoreAddressUrl + "?Id=" + Id, function (data) {
+        var d = eval("(" + data + ")");
+        el.closest(".of_new_address_list").next().find("p").html("地址：" + d.Add + "<br/>电话：" + d.Tel);
+    });
+}
+
+//绑定镇列表的改变事件
+function bindTownList() {
+    var areaId = $("#countySelect2").find('option:selected').attr("value");
+    if (areaId == -1) {
+        return false;
+    }
+
+    $.ajax({
+        async: false,
+        url: getTownListUrl + "?areaId=" + areaId,
+        type: "GET",
+        success: function (data) {
+
+            var countyList = eval("(" + data + ")"); 
+            if (countyList.length > 0) {
+                var optionStr = "<option value='-1'>请选择</option>";
+                for (var i = 0; i < countyList.length; i++) {
+                    optionStr = optionStr + "<option value='" + countyList[i].id + "'>" + countyList[i].name + "</option>";
+                }
+                $("#townSelect2").html(optionStr);
+                $("#townSelect2").show(); //显示镇
+                //$(".countySelect2").find("option[value=" + selectCountyId + "]").attr("selected", true);
+            } else {
+                $("#townSelect2").html("<option value='-1'>请选择</option>");
+                $("#townSelect2").hide(); //显示镇
+            }
+        }
+    });
+};
+
+//Array.prototype.in_array = function (e) {
+//    for (i = 0; i < this.length; i++) {
+//        if (this[i] == e)
+//            return true;
+//    }
+//    return false;
+//}
+
+
+
+var areaArr1 = new Array();
+var areaArr2 = new Array();
+$(function () {
+    //绑定省列表的改变事件
+    $("#provinceSelect,#provinceSelect2").change(function () {
+        var selectedProvinceSelect = $(this);
+        var selectedProvinceId = selectedProvinceSelect.find('option:selected').val();
+        if (selectedProvinceId > 0) {
+            selectedProvinceSelect.parent().find(".countySelect").html("<option value='-1'>请选择</option>")
+            bindCityList(selectedProvinceId, selectedProvinceSelect.parent().find(".citySelect"));
+        }
+    });
+
+    //绑定市列表的改变事件
+    $("#citySelect,#citySelect2").change(function () {
+        var selectedCitySelect = $(this);
+        var selectedCityId = selectedCitySelect.find('option:selected').val();
+        if (selectedCityId > 0) {
+            bindCountyList(selectedCityId, selectedCitySelect.parent().find(".countySelect"));
+        }
+        
+    });
+
+    //绑定区列表的改变事件
+    $("#countySelect,#countySelect2").change(function () {
+        var selectedCitySelect = $(this);
+        var selectedCityId = selectedCitySelect.find('option:selected').val();
+
+        //获取门店地址
+        if ($(this).attr("id") == "countySelect" && selectedCityId > 0) {
+            bindStoreList(selectedCityId, selectedCitySelect.parent().find(".storeSelect"));
+        }
+
+        //获取镇 佛山
+        if ($(this).attr("id") == "countySelect2" && selectedCityId > 0 && $("#citySelect2").val()==236) {
+            bindTownList();
+        } else if ($(this).attr("id") == "countySelect2" && selectedCityId > 0 && $("#countySelect2").val() == 2194) {
+            bindTownList();
+        } else {
+            $("#townSelect2").hide(); //有些区不显示镇
+        }
+      
+        timeblur2(1);
+        //获取区下的所有Id
+        if ($(this).attr("id") == "countySelect") {
+            $(this).find("option:not(:first)").each(function (index, value) {
+                areaArr1[index] = $(value).val();
+            })
+            if ($("#IsPriorityTime").val() == 1) {
+
+                var area = $("#PriorityTimeArea").val();
+                var cur = $(this).val();
+                //允许优先的区域
+                if (area.indexOf(cur) > -1) { 
+                    if (areaArr1.in_array(cur)) {
+                        BookHour = $("#PriorityTime").val();//设为当前产品的时间
+                        changeHour($("#DeliveryTimeHour"));
+                    }
+                } else {
+                    BookHour = $("#Hour").val();//设为默认时间
+                    changeHour($("#DeliveryTimeHour"));
+                }
+            }
+        } else {
+            $(this).find("option:not(:first)").each(function (index, value) {
+                areaArr2[index] = $(value).val();
+            })
+            if ($("#IsPriorityTime").val() == 1) {
+                
+                var area = $("#PriorityTimeArea").val();
+                var cur = $(this).val();
+                //允许优先的区域
+                if (area.indexOf(cur) > -1) {
+                    if (areaArr2.in_array(cur)) {
+                        BookHour = $("#PriorityTime").val();
+                        changeHour($("#DeliveryTimeHour"));
+                    }
+                } else {
+                    BookHour = $("#Hour").val();
+                    changeHour($("#DeliveryTimeHour"));
+                }
+            }
+        }
+
+    });
+
+    $("#storeSelect").change(function () {
+        var selectedCitySelect = $(this);
+        var selectedCityId = selectedCitySelect.find('option:selected').val();
+        if (selectedCityId > 0) {
+            bindStoreAddress(selectedCityId, $(this));
+        }
+    });
+
+    
+
+    //初始化加载省,市,区,分店的信息
+    if (provinceId > 0 && cityId > 0) { 
+        //门店自提
+        $("#provinceSelect").find("option[value=" + provinceId + "]").attr("selected", true);
+        bindCityList(provinceId, $("#provinceSelect").parent().find(".citySelect"), cityId);
+        bindCountyList(cityId, $("#citySelect").parent().find(".countySelect"), countyId);
+        bindStoreList(countyId, $("#countySelect").parent().find(".storeSelect"), storeId);
+
+        //配送上门
+        $("#provinceSelect2").find("option[value=" + provinceId + "]").attr("selected", true);
+        bindCityList(provinceId, $("#provinceSelect2").parent().find(".citySelect"), cityId);
+        bindCountyList(cityId, $("#citySelect2").parent().find(".countySelect"), -1);//默认请选择 countyId
+    }
+});

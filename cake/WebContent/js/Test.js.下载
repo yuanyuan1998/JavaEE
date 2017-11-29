@@ -1,0 +1,93 @@
+/**
+* Created by an www.sucaijiayuan.com
+*/
+
+    var selectInputs = $('[name="check"]'); // 所有勾选框 手机兼容
+    
+   // var priceTotal = document.getElementById('priceTotal'); //总计
+    var tr = document.getElementsByClassName('free_list'); //行
+    // 计算总价格(已选)
+    //function getTotal(){
+    //    var prices = 0;
+    //    var save = 0;
+    //    $('[name="check"]:checked').each(function () {
+    //        var GoodsMoney = parseFloat($(this).next().find('.sellprice').attr('value'));//父元素下的Class下的GoodsPrice的value 值
+    //        var GoodsMoneys = parseFloat($(this).next().find('.sellprice').data('name'));
+    //        prices += parseFloat(GoodsMoney);
+    //        save += parseFloat(GoodsMoneys);
+    //    });
+    //    //赋值
+    //    $("#priceTotal").text("￥" + prices.toFixed(2));
+    //    $("#save").text("￥" + save.toFixed(2));
+    //    //priceTotal. = parseFloat(price).toFixed(2);
+    //}
+    //  全选框
+    $(document).on('change', '[name="check"],.check', function () {
+        countPrice();
+   });
+    // 计算单行价格
+    //function getSubtotal(tr) {
+    //    var total = 0;//定义合计
+    //    //复选框选中
+    //    $('[name="check"]:checked').each(function () {
+    //        var pr = $(this).parent();
+    //        var singlePrice = parseFloat($(pr).find('.PricePhone').attr('value'));//单价
+    //        var num = parseFloat($(pr).find('.num').val()); //数量
+    //        $(pr).find('.PricePhone').text((singlePrice * num).toFixed(2));//单价*数量=总价 toFixed(2)保留2位小数点
+    //        total += (singlePrice * num);//单价*数量=总价
+    //    });
+    //    $('#priceTotal').html(total.toFixed(2));
+    //}
+    
+ //   $(function () {
+ //var price = 0;
+ //var save = 0;
+ //var prices = 0;
+ //$('.sellprice ').each(function () {
+ //           var GoodsMoney = $(this).attr('value');//父元素下的Class下的sellprice的value 值
+ //           var she = $(this).data('name');
+ //           var prices = $(this).attr('.price');
+                 
+ //           price += parseFloat(GoodsMoney);
+ //           save += parseFloat(she);
+ //           prices += parseFloat(prices);
+
+ //           var num = $(this).val();
+ //           var amount = num * prices;
+ //       });
+ //       $("#priceTotal").text("￥" + price.toFixed(2));
+ //       $("#save").text("￥" + save.toFixed(2));
+
+ //       countPrice();
+ //       getTotal();
+ //   });
+
+    $(function () {
+        countPrice();
+    });
+    function countPrice()
+    {
+        var price = 0; 
+        var saveprice = 0;
+        $('input[name=check]:checked').each(function () {
+            //alert(123)
+            var xprice = parseFloat($(this).data('name')); //现价
+            var yprice = parseFloat($(this).data('value')); //省价
+            price += xprice;
+            saveprice += yprice;
+
+            //if($(this).attr('id') == "fixed")
+            //{
+            //    price += xprice;
+            //}
+            //else 
+            //{
+            //    saveprice += (yprice - xprice);
+            //    price += xprice;
+            //}
+        });
+        $("#priceTotal").html(price.toFixed(2));//套餐价格
+        $("#save").html(saveprice.toFixed(2));  //省价格
+    }
+
+

@@ -1,0 +1,2264 @@
+﻿
+var modelType = 0;
+
+//产品排序选择
+$(function () {
+
+    //列表页面产品切换
+    $(".menu li").click(function () {
+        $(".menu li").find("a").removeClass("curli");
+        $(this).find("a").addClass("curli");
+        //$(".menu li").find("a").css("background", "url(../Contents/images/bg_menu.png) -200px -0px no-repeat")
+        //$(this).find("a").css("background", "url(../Contents/images/bg_menu.png) 0 0px no-repeat");
+        $(this).find("a").css("textDecoration", "none");
+        var typeid = $(this).attr("typeid");
+        var typename = $(this).attr("typename");
+        $("#producttitle").css("href", "/Product/List?id=" + typeid)
+        $("#producttitle").empty;
+        $("#producttitle").html(typename);
+        $("#typeid").val(typeid);
+        getListType(typeid, 0);
+    })
+    // setOrder();
+    //地区弹窗
+    $(".area").click(function () {
+        $(".change_pop").toggle();
+    })
+
+    //搜索框
+    $('#so_text').autocomplete({
+        source: function (request, response) {
+            $.ajax({
+                url: "/Base/GetAutoList/",
+                type: "POST",
+                dataType: "json",
+                data: { "keyword": request.term },
+                success: function (data) {
+
+                    response($.map(data, function (item) {
+                        //cc(item.ProductName);
+                        return { label: item.ProductName, value: item.ProductName };
+                    }));
+                }
+            });
+        },
+        minLength: 1
+    });
+    //把预约时间存放在数组里
+    $("#DeliveryTimeHour").children().each(function (index, value) {
+        arrHour[index] = $(value).val();
+    });
+});
+
+
+//var curCity = getCookieValue("curCity");
+//var curCityName = unescape(getCookieValue("curCityName"));
+var domainPlaceId = 0;
+
+function choiceCity(id, name) {
+
+    setCookie("curCity", id, 240, "/");
+    setCookie("curCityName", name, 240, "/");
+    location.href = "http://" + window.location.host + "?PlaceId=" + id;
+}
+
+//获取用户信息
+function getUserInfo(id) {
+    $.ajax({
+        type: "POST",
+        url: "/Base/GetUserInfo",
+        dataType: "json",
+        data: { Id: id },
+        success: function (data) {
+            if (data.isOK == true) {
+
+            }
+        }
+    });
+}
+
+//用户登陆则跳转
+function myManage(flag) {
+    if (UserId) {
+        location.href = "/MyOrder/MyStatePayNon";
+    } else {
+        AddPopupLogin("/MyOrder/MyStatePayNon");
+    }
+}
+
+//用户登陆则跳转
+function myCommentJump() {
+    if (UserId) {
+        AddPopupLogin();
+    } else {
+        AddPopupLogin("/MyOrder/MyCommentNon");
+    }
+}
+
+function loginMember() {
+    location.href = "/Login/Index?link=" + window.location.href;
+}
+
+function loginRechange() {
+    if (UserId) {
+        location.href = "/Login/Index?link=/MyAccount/MyCard";
+    }
+
+}
+
+//用户管理 付款功能
+function myPay(money, orderId, orderName, payway) {
+
+    var parm3 = new Object();
+    parm3.Money = money;
+    parm3.OrderId = orderId;
+    parm3.OrderName = orderName;
+    if (payway == 3) {
+        $.ajax({
+            type: "POST",
+            url: "/Product/Pay",
+            data: parm3,
+            dataType: "json",
+            success: function (data2) {
+                if (data2.isOK == true) {
+
+                    $("body").append(data2.message);
+                }
+            }
+        });
+    } else if (payway == 13) {
+
+        //微信支付
+        location.href = "/Product/WxNativePay?out_trade_no=" + orderId;
+    }
+
+}
+
+//发送短信
+function sendPhone() {
+    var p = $("#sendPhone").val();
+    var m = $("#sendMsg").val();
+    $.post("SendPhone", { Phone: p, Msg: m }, function (data) {
+        var d = eval("(" + data + ")");
+        if (d.isOK == true)
+            alert("添加成功");
+    });
+}
+
+//列表页面排序
+function setOrder() {
+    $(".paixu a").click(function () {
+
+        var type = $(this).closest("dl").find("a").index($(this));//根据排序的字段
+        var order = $(this).attr("value");      //0 降序 1 升序
+        var page = $("#currPage").val();        //当前页
+        var typeid = $("#currType").val();      //产品所属分类
+        var typetop = $("#currTypeTop").val();  //0顶级分类 1.子分类
+        listOrder(type, order, page, typeid, typetop);
+        if ($(this).attr("value") == "0")
+            $(this).attr('value', "1");
+        else
+            $(this).attr('value', "0");
+
+        $("#currOrderAsc").val(type);
+        $("#currOrderCondition").val(order);
+    })
+}
+
+
+//购物车全选
+function checkAll(el) {
+
+    var code_Values = $(".in_car_show input[type=checkbox]");
+    var flag = $(".in_car_show input[type=checkbox]:last:checked").length;
+
+    if (flag > 0) {
+        for (var i = 0; i < code_Values.length; i++) {
+            code_Values[i].checked = true;
+        }
+    } else {
+        for (var i = 0; i < code_Values.length; i++) {
+            code_Values[i].checked = false;
+        }
+    }
+}
+
+
+
+
+//添加到收藏
+function addFav(mid, uid) {
+    if (uid == "") {
+        AddPopupLogin();
+        return;
+    }
+    $.post("/Product/AddFav", { UId: uid, MId: mid }, function (data) {
+        var d = eval("(" + data + ")");
+        if (d.isOK == true) {
+            AddPopup("添加成功");
+            popup($(".p_box1"));
+        }
+    });
+
+}
+
+//查询更多蛋糕 根据产品类型 List查询
+function getListType(typeid, typetop) {
+    //从首页跳转
+
+    if (typetop == 0 && typeid != "" && typeid != undefined) {
+
+        if (window.location.href.indexOf("List") == -1) {
+            $('#list_form_type').submit();
+            return;
+        } else {
+            var parm = new Object();
+            parm["id"] = typeid;
+            parm["typetop"] = typetop;
+            $.ajax({
+                type: "POST",
+                url: "/Product/List3",
+                data: parm,
+                dataType: "json",
+                success: function (data) {
+
+                    $("#productlist").empty();
+                    var temp = '';
+                    $.each(data, function (index, value) {
+
+                        temp = '<div class="list_box">';
+                        temp += '<span class="btn_li_box">';
+                        temp += '<a class="btn_buy1 pull-left" href="javascript:" onclick="AddCarPopup(this,' + value.Id + ');">加入购物车</a>'
+                        temp += '<a class="btn_buy0 pull-left" href="/Product/Show/' + value.Id + '">查看详情</a></span>';
+
+                        if (value.TitleImg1 != null && value.TitleImg1 != "") {
+                            temp += '<div class="pull-left pic"><a style="background-image:url(' + value.TitleImg1 + ');" href="JavaScript:"></a></div>';
+                        } else {
+                            temp += '<div class="pull-left pic"><a style="background-image:url(/Upload/Product/Show/Source/' + value.TitleImg + ');" href="JavaScript:"></a></div>';
+                        }
+
+                        temp += '<div class="pull-right cont_word">';
+                        temp += '<h1>' + value.ProductName + '</h1>';
+                        temp += '<p>' + value.ProductDesc + '</p>';
+                        temp += '<div class="price_list">';
+                        temp += '<div class="pl_jia co_cheng">￥<b>' + value.SellPrice.toFixed(2) + '</b></div>';
+                        temp += '<div class="pl_yj">原价:<ins>￥' + value.ShowPrice.toFixed(2) + '</ins></div>';
+                        temp += '<div class="pl_yj">已售:<b class="co_cheng">' + value.Sold + '</b></div>';
+                        temp += ' <div class="pl_yj">';
+                        temp += '<u class="co_cheng">' + value.CommentCount + '</u>人评价<span class="star_small"><i></i></span>';
+                        temp += '</div></div></div><div class="clearfix"></div></div>';
+                        $("#productlist").append(temp);
+
+                    })
+
+                }
+
+            })
+            return;
+        }
+
+    }
+    //List查询
+    var type = $("#currOrderAsc").val();
+    var order = $("#currOrderCondition").val();
+    var page = $("#currPage").val();
+    if (!typeid)
+        typeid = 0;
+    //listOrder(type, order, page, typeid, typetop);
+    $("#currType").val(typeid);
+    $("#currTypeTop").val(typetop);
+}
+//产品排序查询
+function listOrder(type, order, page, typeid, typetop) {
+    // type 默认,销量,价格 ；order 正/逆序；page 页数；typeid产品类型；typetop 0父类,1.子类
+    var productType = 0;
+    if (window.location.search.indexOf("type=1") > -1) {
+        productType = 1;
+    } else if (window.location.search.indexOf("type=2") > -1) {
+        productType = 2;
+    } else if (window.location.search.indexOf("type=3") > -1) {
+        productType = 3;
+    }
+    //
+    var typeStr = ["已售", "已团", "数量", "数量"];
+    var template = '<div class="lbox"><div class="mark">{IsVoucher}{IsScore}{IsJian}{IsZheKou}</div><a href="/Product/Detailtest/{Id}"><img src="/Upload/Product/Show/Source/{TitleImg}"width="462"height="284"/><div><div class="lbox_left"><h2>{ProductName}</h2><p><span class="zi_red">产品简介：</span>{ProductDesc}</p></div><div class="lbox_right"><b><ins>￥</ins>{SellPrice}</b>                <span>门店价格：￥{ShowPrice}</span><br/><span>' + typeStr[productType] + '：<em class="zi_red">{Sold}</em></span><div><i class="pro_star1" style="float:left;margin-right:10px;"><ins style="width:{CommentMark}%" value=""></ins></i><em class="zi_red">{CommentCount}</em>人评价</div></div></div></a></div>';
+    var temp = "";
+    var parm = new Object();
+    parm["type"] = type;
+    parm["order"] = order;
+    parm["page"] = page;
+    parm["typeid"] = typeid;
+    parm["typetop"] = typetop;
+    parm["productType"] = productType;
+
+    $.ajax({
+        type: "POST",
+        url: "/Product/List2",
+        data: parm,
+        dataType: "json",
+        success: function (data) {
+            //alert(JSON.stringify(data));
+            $("#productList").empty();
+            $.each(data, function (index, value) {
+
+                temp = template;
+                temp = temp.replace("{Id}", value.Id);
+
+                if (!value.TitleImg)
+                    temp = temp.replace("{TitleImg}", "nonPic.jpg");
+                else
+                    temp = temp.replace("{TitleImg}", value.TitleImg);
+                temp = temp.replace("{ProductName}", value.ProductName);
+                temp = temp.replace("{ProductDesc}", value.ProductDesc);
+                temp = temp.replace("{SellPrice}", setNumPoint(value.SellPrice));
+                temp = temp.replace("{ShowPrice}", setNumPoint(value.ShowPrice));
+                temp = temp.replace("{Sold}", value.Sold);
+                temp = temp.replace("{CommentCount}", value.CommentCount);
+                temp = temp.replace("{CommentMark}", value.CommentMark * 20 + "%");
+                //temp = temp.replace(/{page}/g, (value.TypeId == '34' || value.TypeId == '43' || value.TypeId == '44') ? '2' : '');
+                //temp = temp.replace("{IsVoucher}", '<span class="mark_li8"></span>');
+
+                //代金券
+                if (value.DeliveryState > 0) {
+                    temp = temp.replace("{IsVoucher}", '<span class="mark_li0"></span>');
+                } else {
+                    temp = temp.replace("{IsVoucher}", '');
+                }
+
+                //积分
+                if (value.IsScore > 0) {
+                    temp = temp.replace("{IsScore}", '<span class="mark_li1"></span>');
+                } else {
+                    temp = temp.replace("{IsScore}", '');
+                }
+
+                //立减 6.28-6.30
+                if (value.IsCookie == 0 && checkDate('2015-06-27', CurentTime2(1)) && checkDate(CurentTime2(1), '2015-06-30')) {
+                    temp = temp.replace("{IsJian}", '<span class="mark_li2"></span>');
+                } else {
+                    temp = temp.replace("{IsJian}", '');
+                }
+
+                //折扣
+                if (value.Discount > 0 || value.Id == 1) {
+                    temp = temp.replace("{IsZheKou}", '<span class="mark_li3"></span>');
+                } else {
+                    temp = temp.replace("{IsZheKou}", '');
+                }
+
+                //2.5折 广州
+                //if (domainPlaceId == 3 && checkDate(CurentTime2(1), '2015-08-20')) {
+                //    temp = temp.replace("{IsZheKou}", '<span class="mark_li3"></span>');
+                //} else {
+                //    temp = temp.replace("{IsZheKou}", '');
+                //}
+                $("#productList").append(temp);
+            });
+            $("#productList").append("<div class='spacer'></div>");
+            $(".lbox_box .lbox:odd").addClass("mar");
+        },
+        error: function (err) { }
+    });
+
+}
+
+
+//加载地址
+function getAddress(sign, placeid) {
+
+    if (!placeid) {
+        placeid = $("#PlaceId").val();
+    }
+    $.ajax({
+        type: "POST",
+        url: "/Base/GetAddress",
+        data: { PlaceId: placeid },
+        dataType: "json",
+        success: function (data) {
+            $("#userAddress").html = "";
+            // template = '<dl class="of_address_list" ProvinceName="{ProvinceName}" CityName="{CityName}" AreaName="{AreaName}" Addr="{Addr}" DetailAddress="{DetailAddress}"><dt class="moren"><input name="r5" type="radio"checked="checked"value="{Id}"/>{Default}</dt><dd {Bg}><label>{Consignee}　　{Phone}　　{DetailAddress}　　{BuildingSign}</label><span class="of_del fr"style="display: none;"><i class="set_moren"style="display: none;"><a href="javascript:" onclick="setDefaultAddress({Id})">设为默认地址</a></i><a class="zi_red"href="javascript:" onclick="getAddressById({Id})">修改</a><a class="zi_888"href="javascript:void(0);" onclick="delAddress({Id})">删除</a></span></dd><div class="spacer"></div></dl>';
+            template = '<div class="col-lg-3 area_list {Bg}" ProvinceName="{ProvinceName}" CityName="{CityName}" AreaName="{AreaName}" Addr="{Addr}" DetailAddress="{DetailAddress}" BuildingSign="{BuildingSign}" ><label><em></em><span class="area_btn"><a href="javascript:" onclick="setDefaultAddress({Id})">设为默认</a><a class="icon_area_edit" href="javascript:" onclick="getAddressById({Id})"></a><a class="icon_area_del" href="javascript:void(0);" onclick="delAddress({Id})"></a></span><dl><dt><input class="raduo" name="shou_style" type="radio" {Default} value="{Id}"></dt><dd><ul><li>{DetailAddress}{BuildingSign1}</li><li>{Consignee}</li><li>{Phone}</li></ul> </dd><div class="spacer"></div></dl></label></div>'
+            var temp = "";
+            var tempAll = "";
+            // $("dl.of_address_list").remove();
+            var curDefault = 0;
+            $.each(data, function (index, value) {
+                var ch = "";
+                var bg = "";
+                if (1 == value.IsDefault) {
+                    ch = "checked";
+                    bg = 'cur';
+                }
+
+                temp = template;
+                temp = temp.replace(/{Id}/g, value.Id);
+                temp = temp.replace("{ProvinceName}", value.ProvinceName.replace(/[ ]/g, ""));
+                temp = temp.replace("{CityName}", value.CityName.replace(/[ ]/g, ""));
+                temp = temp.replace("{AreaName}", value.AreaName.replace(/[ ]/g, ""));
+                //temp = temp.replace("{ProvinceId}", value.ProvinceId);
+                //temp = temp.replace("{CityId}", value.CityId);
+                //temp = temp.replace("{AreaId}", value.AreaId);
+                temp = temp.replace("{Addr}", value.CityName.replace(/[ ]/g, "") + value.AreaName.replace(/[ ]/g, "") + value.DetailAddress);
+                temp = temp.replace("{Consignee}", value.Consignee);
+                temp = temp.replace(/{DetailAddress}/g, value.DetailAddress);
+                temp = temp.replace("{BuildingSign}", value.BuildingSign);
+                temp = temp.replace("{BuildingSign1}", value.BuildingSign);
+                temp = temp.replace("{Phone}", value.Phone);
+                temp = temp.replace("{Default}", ch);
+                temp = temp.replace("{Bg}", bg);
+
+                if (value.IsDefault == 1) {
+                    curDefault = index;
+                }
+                tempAll += temp;
+            });
+            tempAll += '<div class="spacer"></div>';
+            $("#userAddress").html(tempAll);
+            $("#userAddress>dl").eq(curDefault).find("input").attr("checked", true);
+
+            //设置添加地址时的 地区
+            if (placeid == 3) {
+                $("#citySelect2").find("option[value=231]").attr("selected", "selected");
+            } else if (placeid == 2) {
+                $("#citySelect2").find("option[value=241]").attr("selected", "selected");
+                //$("#citySelect2").find("option:nth-child(3)").attr("selected", "selected");
+            } else if (placeid == 1) {
+                $("#citySelect2").find("option[value=233]").attr("selected", "selected");
+            } else {
+                $("#citySelect2").find("option[value=" + placeid + "]").attr("selected", "selected");
+                //$("#citySelect2").find("option:nth-child(2)").attr("selected", "selected");
+            }
+
+
+            //用户登陆后的地址选则
+            $("#userAddress").click(function () {
+                setdeliverydate(1);
+            })
+            hoverAddr();
+        },
+        error: function (err) { }
+    });
+}
+
+
+
+//添加或更新地址
+function addAddress(id) {
+
+    var con = $("#addAddress").find(".of_text").eq(0).val().replace(/[ ]/g, "");
+    if (!con) {
+        $("#addAddress").find(".of_text").eq(0).next().html("<font color='#da646f'>收货人姓名不能为空!</fong>");
+        return false;
+    } else {
+        $("#addAddress").find(".of_text").eq(0).next().html("");
+    }
+
+    var Phone = $("#addAddress").find(".of_text").eq(1).val();
+    if (Phone.length < 1) {
+        $("#addAddress").find(".of_text").eq(1).next().html("<font color='#da646f'>不能为空</fong>");
+        return false;
+    }
+    if (!isPhone(Phone)) {
+        $("#addAddress").find(".of_text").eq(1).next().html("<font color='#da646f'>手机格式不正确!</fong>");
+        return false;
+    } else {
+        $("#addAddress").find(".of_text").eq(1).next().html("");
+    }
+    if ($("#countySelect2").val() == -1) {
+        $("#countySelect2").next().text("地区不能为空");
+        return false;
+    }
+    var add = $("#addAddress").find(".of_text").eq(2).val().replace(/[ ]/g, "");
+    var addde = $("#addAddress").find(".of_text").eq(3).val().replace(/[ ]/g, "");
+
+    if (!add) {
+        $("#addAddress").find(".of_text").eq(2).next().html("<font color='#da646f'>地址不能为空!</fong>");
+        return false;
+    } else {
+        $("#addAddress").find(".of_text").eq(2).next().html("");
+    }
+    if (!addde) {
+        $("#addAddress").find(".of_text").eq(3).next().html("<font color='#da646f'>建筑不能为空!</fong>");
+        return false;
+    } else {
+        $("#addAddress").find(".of_text").eq(3).next().html("");
+    }
+    //★ 必填
+    var parm = new Object();
+    parm["Consignee"] = $("#addAddress").find(".of_text").eq(0).val();
+    parm["Phone"] = $("#addAddress").find(".of_text").eq(1).val();
+    parm["DetailAddress"] = $("#addAddress").find(".of_text").eq(2).val();
+    parm["BuildingSign"] = $("#addAddress").find(".of_text").eq(3).val();
+    parm["ProvinceId"] = $("#provinceSelect2").val();
+    parm["CityId"] = $("#citySelect2").val();
+    parm["AreaId"] = $("#countySelect2").val();;
+    parm["IsDefault"] = $("#addIsDefault").val();  //前台添加地址后即设为默认
+
+    if (id != 0 && id != undefined) {
+
+        parm["Id"] = id;;
+        //Update 
+        updateAddress(parm, id);
+
+    } else {
+        //Save 
+        addAddressSave(parm, id);
+    }
+
+}
+
+//添加地址提交
+function addAddressSave(parm, id) {
+
+    $.ajax({
+        type: "POST",
+        url: "/Base/AddAddress",
+        data: parm,
+        dataType: "json",
+        success: function (data) {
+            if (data.isOK == true) {
+                getAddress(id);
+                $("#addAddress").find(".of_text").eq(0).val("");
+                $("#addAddress").find(".of_text").eq(1).val("");
+                $("#addAddress").find(".of_text").eq(2).val("");
+                $("#addAddress").find(".of_text").eq(3).val("");
+            }
+            $(".newdizhi").hide();
+
+        }, error: function (err) { }
+    })
+}
+
+//添加地址提交
+function LoginOut() {
+    function custom_close() {
+        if (confirm("您确定要退出吗？")) {
+            $.post("/Login/LoginOut", { Phone: 1 }, function (data) {
+
+            });
+        }
+    }
+}
+
+//更新地址提交
+function updateAddress(parm) {
+    //parm["IsDefault"] = 0;  //后台更新不需要设为默认
+    $.ajax({
+        type: "POST",
+        url: "/Base/UpdateAddress",
+        data: parm,
+        dataType: "json",
+        success: function (data) {
+            if (data.isOK == true) {
+                getAddress(parm.Id);
+
+                $("#addAddress").find(".of_text").eq(0).val("");
+                $("#addAddress").find(".of_text").eq(1).val("");
+                $("#addAddress").find(".of_text").eq(2).val("");
+                $("#addAddress").find(".of_text").eq(3).val("");
+                $("#provinceSelect2").val(19);
+                $("#citySelect2").val(233);
+                $("#countySelect2").val(2142);
+            }
+            //设为保存
+            document.getElementById("addSubmit").onclick = function () { addAddress(parm.Id); }
+            $(".newdizhi").hide();
+
+        }, error: function (err) { }
+    })
+}
+
+//获取一条地址信息
+function getAddressById(id) {
+
+    if (UserId == "") {
+        AddPopupLogin();
+        return;
+    }
+    $.ajax({
+        type: "POST",
+
+        url: "/Base/GetAddressById",
+        data: { Id: id },
+        dataType: "json",
+        success: function (data) {
+            $("#addAddress").find(".of_text").eq(0).val(data.Consignee);
+            $("#addAddress").find(".of_text").eq(1).val(data.Phone);
+            $("#addAddress").find(".of_text").eq(2).val(data.DetailAddress);
+            $("#addAddress").find(".of_text").eq(3).val(data.BuildingSign);
+            $("#provinceSelect2").val(data.ProvinceId);
+            $("#citySelect2").val(data.CityId);
+            $("#countySelect2").val(data.AreaId);
+            $("#addIsDefault").val(data.IsDefault);
+
+            //设为修改
+            document.getElementById("addSubmit").onclick = function () { addAddress(data.Id); }
+            $(".newdizhi").show();
+        }
+    });
+}
+
+//删除地址
+function delAddress(id) {
+
+    $.ajax({
+        type: "POST",
+        url: "/Base/DelAddress",
+        data: { Id: id },
+        dataType: "json",
+        success: function (data) {
+            if (data.isOK == true) {
+                getAddress(1);
+            }
+        }
+    });
+}
+
+//设为默认地址
+function setDefaultAddress(id) {
+
+    $.ajax({
+        type: "POST",
+        url: "/Base/SetDefaultAddress",
+        data: { Id: id },
+        dataType: "json",
+        success: function (data) {
+            if (data.isOK == true) {
+                getAddress(1);
+            }
+        }
+    });
+
+}
+
+//地址悬浮提示文字 (设为默认 删除 修改)
+function hoverAddr() {
+    $("dl.of_address_list").hover(function () {
+        $(this).find(".set_moren").show();
+        $(this).find(".of_del").show();
+    }, function () {
+        $(this).find(".set_moren").hide();
+        $(this).find(".of_del").hide();
+    })
+}
+
+
+
+//验证
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//验证手机号
+function isPhone(temp, flag) {
+    var myreg = /^(((1[0-9][0-9]{1})|159|153)+\d{8})$/;
+    if (!myreg.test(temp)) {
+        if (flag)
+            alert('请输入有效的手机号码！');
+        return false;
+    }
+    return true;
+}
+
+//验证邮箱
+function isEmail(temp, flag) {
+    ///^([\.a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(\.[a-zA-Z0-9_-]){3}/
+    var myreg = /^(\w-*\.*)+@(\w-?)+(\.\w{2,3})+$/;
+    if (!myreg.test(temp)) {
+        if (flag)
+            alert('提示\n请输入有效的E_mail！');
+        return false;
+    }
+    return true;
+}
+
+
+
+//配件-蛋糕蜡烛
+function choicepeijian_10385(el, id) {
+    el.value = el.value.replace(/\D/g, '');
+    $(".openAttr-" + id).find("input:last").val($("#peijian-" + id).val().length);
+
+    var id = $(el).closest('.popup_box').attr("data-id");               //当前div 的Id
+    var p = $(el).closest(".p_box2").find("a.cur").attr("price");       //单价
+    var pa = setNumPoint(eval($("#peijian-" + id).val().length * p));   //数量
+    $(el).closest(".d_pro_info").find("b").text(setNumPoint(pa));
+
+    //getProductAttr(id)
+}
+
+
+//格式化
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//数组 是否包含
+Array.prototype.in_array = function (e) {
+    for (i = 0; i < this.length && this[i] != e; i++);
+    return !(i == this.length);
+}
+//数组 返回包含的小标
+Array.prototype.in_arrayInt = function (e) {
+    for (i = 0; i < this.length; i++) {
+        if (this[i] == e)
+            return i;
+    }
+    return 0;
+}
+
+//设置小数点后两位数
+function setNumPoint(val) {
+    var s = val + "";
+    var str = '';
+    var sp = s.split(".");
+    if (sp.length > 1)
+        if (sp[1].length >= 2)
+            str = s.substring(0, s.indexOf(".") + 3);
+        else if (sp[1].length == 1)
+            str = s.substring(0, s.indexOf(".") + 3) + "0";
+        else
+            str = s + ".00";
+    else
+        str = s + ".00";
+
+    return str;
+}
+
+//设置小数点后两位数 定义js相乘小数位不对的情况 如 30*0.12=3.59 改为3.6
+function setNumFormat(value, pointNum) {
+    if (!pointNum)
+        pointNum = 2;
+    var result = Math.round(parseFloat(value) * Math.pow(10, pointNum)) / Math.pow(10, pointNum);
+    return result;
+}
+
+function setMoneyFormat(value, pointNum) {
+    if (!pointNum)
+        pointNum = 2;
+    var result = Math.round(parseFloat(value) * Math.pow(10, pointNum)) / Math.pow(10, pointNum);
+    return setNumPoint(result);
+}
+
+//当前时间
+function CurentTime2(flag) {
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = now.getMonth() + 1;
+    var day = now.getDate();
+    var hh = now.getHours();
+    var mm = now.getMinutes();
+    var ss = now.getSeconds();
+
+    var clock = year + "-";
+    if (month < 10) clock += "0";
+    clock += month + "-";
+    if (day < 10) clock += "0";
+    clock += day + " ";
+    if (hh < 10) clock += "0";
+    clock += hh + ":";
+    if (mm < 10) clock += '0';
+    clock += mm + ":";
+    if (ss < 10) clock += '0';
+    clock += ss;
+
+    if (flag) {
+        clock = clock.substring(0, 10);
+    }
+    return (clock)
+}
+
+function jumpScorll(el, flag) {
+    var temp = 20;
+    if (flag) {
+        temp = flag;
+    }
+    //“slow”，“medium”和“fast”
+    $('html, body, .content').animate({ scrollTop: el.offset().top - temp }, 300);
+    //$(window).scrollTop(el.offset().top - temp,0);
+}
+
+//剩余字符
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//设置还可以输入多少字符
+function enterCharLimit(obj, maxlimit) {
+    var len = byteLength(obj.value);
+
+    if (len > maxlimit) {
+        $(obj).val(sb_substr(obj.value, 0, maxlimit));
+        //$(obj).next().html("已超出<b class='zi_red'>" + parseInt((len - maxlimit + 1) / 2) + "</b>个字");
+
+    } else {
+        $(obj).next().html("还可以输入<b class='zi_red'>" + parseInt((maxlimit - len) / 2) + "</b>个字");
+        if ($(obj).attr("id") == "Benison") {
+            $(".order_fujia input[name='r1']:last").attr("checked", true);
+        }
+    }
+}
+
+function byteLength(sStr) {
+    aMatch = sStr.match(/[^\x00-\x80]/g);
+    return (sStr.length + (!aMatch ? 0 : aMatch.length));
+}
+
+//得到字符总数
+function getChars(str) {
+    var i = 0;
+    var c = 0.0;
+    var unicode = 0;
+    var len = 0;
+    if (str == null || str == "") {
+        return 0;
+    }
+    len = str.length;
+    for (i = 0; i < len; i++) {
+        unicode = str.charCodeAt(i);
+        if (unicode < 127) { //判断是单字符还是双字符
+            c += 1;
+        } else {  //chinese
+            c += 2;
+        }
+    }
+    return c;
+}
+
+function sb_strlen(str) {
+    return getChars(str);
+}
+
+//截取字符
+function sb_substr(str, startp, endp) {
+    var i = 0; c = 0; unicode = 0; rstr = '';
+    var len = str.length;
+    var sblen = sb_strlen(str);
+    if (startp < 0) {
+        startp = sblen + startp;
+    }
+    if (endp < 1) {
+        endp = sblen + endp;// - ((str.charCodeAt(len-1) < 127) ? 1 : 2);
+    }
+    // 寻找起点
+    for (i = 0; i < len; i++) {
+        if (c >= startp) {
+            break;
+        }
+        var unicode = str.charCodeAt(i);
+        if (unicode < 127) {
+            c += 1;
+        } else {
+            c += 2;
+        }
+    }
+    // 开始取
+    for (i = i; i < len; i++) {
+        var unicode = str.charCodeAt(i);
+        if (unicode < 127) {
+            c += 1;
+        } else {
+            c += 2;
+        }
+        rstr += str.charAt(i);
+        if (c >= endp) {
+            break;
+        }
+    }
+    return rstr;
+}
+
+//预约时间
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+var BookHour = 0;   //默认提前小时
+
+//配送时间（当天的所有时间）
+function timeblur1(option) {
+    var str = "";
+    for (var i = 0; i < arrHour.length; i++) {
+        str += "<option>" + arrHour[i] + "</option>";
+    }
+    if (str != "") {
+        $("#DeliveryTimeHour").html(str);
+    }
+    if (option != "") {
+        $("#DeliveryTimeHour").val(option);
+    }
+};
+
+var curDate11 = "";
+
+//设置配送日期
+function setDeliveryTimeDay(beforeHour, flag) {
+    var currdate = NewDate(curDateStr);//当前日期 
+    $("#DeliveryTimeDay").removeAttr("onfocus");
+    $("#DeliveryTimeDay").unbind("focus");
+    if (modelType == 2) {
+        $("#DeliveryTimeDay").bind("focus", function () {
+            WdatePicker({
+                dateFmt: 'yyyy-MM-dd', minDate: curDateAdd, maxDate:
+
+        currdate.DateAdd("m", 2).format("yyyy-MM-dd")
+            });
+        })
+    } else {
+        $("#DeliveryTimeDay").bind("focus", function () {
+            WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: currdate.DateAdd("d", beforeHour).format("yyyy-MM-dd") });
+        });
+    }
+    // cc("product.js setDeliveryTimeDay(");
+    setTimeout(function () {
+        if (curDate11 == "") {
+            $("#DeliveryTimeDay").val(currdate.DateAdd("d", beforeHour).format("yyyy-MM-dd"));
+            curDate11 = $("#DeliveryTimeDay").val(); //first 
+        }
+    }, 100);
+
+}
+//最早预约时间为明天
+function minDateTomorrow() {
+    var curSystem = parseISO8601(CurentTime2(1));               //当前系统日期
+    $("#DeliveryTimeDay").removeAttr("onfocus");
+    $("#DeliveryTimeDay").unbind("focus");
+    $("#DeliveryTimeDay").focus(function () {
+        WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: curSystem.DateAdd("d", 1).format("yyyy-MM-dd") });
+    });
+    $("#DeliveryTimeDay").val(curSystem.DateAdd("d", 1).format("yyyy-MM-dd"));
+}
+$(function () {
+    $("#DeliveryTimeDay").blur(function () {
+        timeblur2(1);
+    })
+})
+//配送日期（根据当前小时判断）
+function timeblur2(option) {
+    BookHour = $("#tableBuy1 tr").eq(1).find("td").eq(1).attr("hour");
+    //setDeliveryTimeDay(1);
+    var str = "";
+    var hhhh = BookHour;
+    if (hhhh == undefined) {
+        hhhh = 5;
+    }
+    curDateHour = new Date().getHours();    //当前小时
+    var projecthour = parseInt(hhhh);
+    var currenthour = parseInt(curDateHour);
+    var hour = projecthour;
+
+    var todayLast = 21;     //默认当天最晚预约时间为较长的
+    todayLast = $(".city_choice .cur").attr("daylimit");
+    var daylimitfirst = $(".city_choice .cur").attr("daylimitfirst");
+    var areaCur = $(".city_choice .cur").attr("daylinitarea");
+
+    //有优先截止时间
+    if (daylimitfirst > 0) {
+        var selectCur = 0;  //当前选中的区域Id
+        var delivertype = $("body").find("input[name=r2]:checked").parent().text().replace(/^\s+|\s+$/g, "");
+        if (delivertype == "配送上门") {
+            selectCur = $("#countySelect2").val();
+        } else {
+            selectCur = $("#countySelect").val();
+        }
+
+        var productHour = $("#tableBuy1 tr").eq(1).find("td").eq(1).attr("hour");
+
+
+        //获取预约的截止时间
+        //优先预约区域包含当前选择的区域
+        if (areaCur.indexOf(selectCur) > -1)
+
+            todayLast = daylimitfirst;    //当前商品以优先预约时间为主
+
+
+    }
+
+    var currdate = parseISO8601($("#DeliveryTimeDay").val());   //当前选则日期
+    var curSystem = parseISO8601(CurentTime2(1));               //当前系统日期
+    var lasthour = 0;                                           //最早能预约的小时值
+    lasthour = parseInt(currenthour) + projecthour + parseInt(1);
+
+
+    var curDateMinute = new Date().getMinutes();
+    var count = 0;
+    if (curDateMinute < 30) {
+        //lasthour--;
+    };
+
+    //提前约定的小时数
+    if (hour <= todayLast) {
+
+        //当前时间小于截单时间,最早能预约的小时值大于等于9点(大于9点则会截取9点的时间段, 等于9点则刚好不截取)
+        if (currenthour < todayLast && lasthour >= 9) {
+            //切换城市时
+            if (lasthour > 23) {
+                minDateTomorrow();
+                return false;
+            } else {
+
+                //默认当天日期，从团购网站跳转过来时需要加载项目时也加载了时间，但因为没选地区，时间为明天，那当天就不能再选择了
+                $("#DeliveryTimeDay").removeAttr("onfocus");
+                $("#DeliveryTimeDay").unbind("focus");
+                $("#DeliveryTimeDay").focus(function () {
+                    WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: curSystem.DateAdd("d", 0).format("yyyy-MM-dd") });
+                });
+            }
+            timeblur1(arrHour[0]);
+
+            var tempflag = 0;
+
+            //计算当天当前可选的时间段
+            if ($("#DeliveryTimeDay").val() == CurentTime2(1)) {
+
+                for (var i = 0; i < arrHour.length; i++) {
+
+                    //当数组中的某一个包含lasthour 则数组后面的都有效
+                    if (arrHour[i].substring(0, 2).indexOf(lasthour) > -1 || count > 0) {
+
+                        count++;
+
+                        //数组最后一个时间段作比较,如不存在则当天不能预约 （页面加载时,lasttime>时间段的最大值时）
+                        if (curDateMinute < 30 && i != 0 && tempflag == 0) {
+                            str += "<option>" + arrHour[i - 1] + "</option>";
+                            tempflag = 1;
+                        }
+
+                        if (i >= arrHour.length) {
+                            break;
+                        }
+                        str += "<option>" + arrHour[i] + "</option>";
+
+                    }
+
+                    //数组最后一个时间段作比较,如不存在则当天不能预约
+                    if (i == arrHour.length - 1 && str.length == 0) {
+
+                        if (arrHour[arrHour.length - 1].substring(0, 2).indexOf(lasthour) == -1) {
+                            $("#DeliveryTimeDay").removeAttr("onfocus");
+                            $("#DeliveryTimeDay").unbind("focus");
+                            $("#DeliveryTimeDay").focus(function () {
+                                WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: curSystem.DateAdd("d", 1).format("yyyy-MM-dd") });
+                            });
+                            $("#DeliveryTimeDay").val(curSystem.DateAdd("d", 1).format("yyyy-MM-dd"));
+                        }
+                    }
+                }
+            }
+
+            if (str != "") {
+
+                $("#DeliveryTimeHour").html(str);
+            }
+
+            if ($("#DeliveryTimeHour").text().indexOf(option) > -1) {
+                $("#DeliveryTimeHour").val(option);
+            }
+
+            if ($("#DeliveryTimeHour").val() == null || $("#DeliveryTimeHour").val() == '') {
+                $("#DeliveryTimeHour option:nth-child(1)").attr("selected", "selected");
+            }
+
+        } else if (currenthour >= todayLast) {
+
+            //当天截单时间之后只能预约明天
+            timeblur1(arrHour[0]);
+            $("#DeliveryTimeDay").removeAttr("onfocus");
+            $("#DeliveryTimeDay").unbind("focus");
+            $("#DeliveryTimeDay").focus(function () {
+                WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: curSystem.DateAdd("d", 1).format("yyyy-MM-dd") });
+            });
+            //如果是当天则加一天
+            if ($("#DeliveryTimeDay").val() == curSystem.DateAdd("d", 0).format("yyyy-MM-dd")) {
+                $("#DeliveryTimeDay").val(curSystem.DateAdd("d", 1).format("yyyy-MM-dd"));
+            }
+            $("#DeliveryTimeHour").val(option);
+        } else {
+
+            //9点之前的预约时间
+            $("#DeliveryTimeHour").find("option:first").attr("selected", true);
+            $("#DeliveryTimeHour").val(option);
+
+        }
+    }
+    else if (hour == 23) {
+
+        var starttime = '';
+        //截单时间前
+        if (currenthour < todayLast) {
+            $("#DeliveryTimeDay").removeAttr("onfocus");
+            $("#DeliveryTimeDay").unbind("focus");
+            $("#DeliveryTimeDay").focus(function () {
+                WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: curSystem.DateAdd("d", 1).format("yyyy-MM-dd") });
+            });
+            starttime = curSystem.DateAdd("d", 1).format("yyyy-MM-dd");
+        } else {
+            //截单时间后
+            $("#DeliveryTimeDay").removeAttr("onfocus");
+            $("#DeliveryTimeDay").unbind("focus");
+            $("#DeliveryTimeDay").focus(function () {
+                WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: curSystem.DateAdd("d", 2).format("yyyy-MM-dd") });
+            });
+            starttime = curSystem.DateAdd("d", 2).format("yyyy-MM-dd");
+        }
+
+        //当前日期 <= 最早预约日期,设置最早预约日期
+        if (checkDate($("#DeliveryTimeDay").val(), starttime)) {
+            $("#DeliveryTimeDay").val(starttime);
+        }
+        timeblur1(arrHour[0]);
+        $("#DeliveryTimeHour").val(option);
+
+        //当前日期 <= 最早预约日期(今天之后的2天,设置配送日期等于2天后)
+        //if (checkDate($("#DeliveryTimeDay").val(), NewDate(CurentTime2(1)).DateAdd("d", 2).format("yyyy-MM-dd"))) {
+        //    $("#DeliveryTimeDay").val(NewDate(CurentTime2(1)).DateAdd("d", 2).format("yyyy-MM-dd"));
+        //}
+
+    }
+    else if (hour == 24 || hour == 48) {
+        var starttime = curSystem.DateAdd("d", (hour / 24)).format("yyyy-MM-dd");
+        $("#DeliveryTimeDay").removeAttr("onfocus");
+        $("#DeliveryTimeDay").unbind("focus");
+        $("#DeliveryTimeDay").focus(function () {
+            WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: starttime });
+        });
+
+        //当前日期 <= 最早预约日期,设置最早预约日期
+        if (checkDate($("#DeliveryTimeDay").val(), starttime)) {
+            $("#DeliveryTimeDay").val(starttime);
+        }
+        timeblur1(arrHour[0]);
+        $("#DeliveryTimeHour").val(option);
+
+    } else {
+
+    }
+}
+
+
+//配送时间（面包）
+function timeblur33(option) {
+    var str = "";
+    for (var i = 0; i < arrHour.length; i++) {
+        if (i >= 10 && i <= 20) {
+            str += "<option>" + arrHour[i] + "</option>";
+        }
+    }
+    if (str != "") {
+        $("#DeliveryTimeHour").html(str);
+    }
+    if (option != "") {
+        $("#DeliveryTimeHour").val(option);
+    }
+};
+
+//初始化日期
+function setdeliverydate(flag) {
+
+    if ($("#TypeId").val() == "33") {
+        if (new Date().getHours() > curDateHour) {
+            curDateHour = new Date().getHours();
+        }
+        //要获取当前小时
+        if (curDateHour >= 12) {
+            var curSystem = parseISO8601(CurentTime2(1));               //当前系统日期  
+            $("#DeliveryTimeDay").removeAttr("onfocus");
+            $("#DeliveryTimeDay").unbind("focus");
+            $("#DeliveryTimeDay").bind("focus", function () {
+                WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: curSystem.DateAdd("d", 1).format("yyyy-MM-dd") });
+            });
+            if (curSystem.DateAdd("d", 0).format("yyyy-MM-dd") == $("#DeliveryTimeDay").val()) {
+                $("#DeliveryTimeDay").val(curSystem.DateAdd("d", 1).format("yyyy-MM-dd"));
+            }
+        }
+        timeblur33($("#DeliveryTimeHour").val());
+        return;
+    }
+
+
+    BookHour = $("#Hour").val();
+
+    if ($("#IsPriorityTime").val() == 1) {
+
+        var area = $("#PriorityTimeArea").val();
+        var cur = $("#countySelect").val();
+
+        var delivertype = $("body").find("input[name=r2]:checked").parent().text();
+        if (delivertype == "配送上门" || delivertype == "送货上门") {
+            cur = $("#countySelect2").val();
+        }
+
+        //允许优先的区域
+        if (area.indexOf(cur) > -1) {
+            //盐田区 ,提前5小时 
+            BookHour = $("#PriorityTime").val();//设为优先提前时间 
+        } else if (cur != 2142 && cur != 2143 && cur != 2144) {
+            //不是 罗湖,福田,南山区 ,提前2小时 ，则为宝安区，光明之类
+            BookHour = 2;
+        } else {
+            //罗湖,福田,南山区 提前1小时
+            BookHour = $("#Hour").val();//设为默认提前时间
+        }
+    }
+
+    /* 手信产品2月17-2月26日是不提供配送和自提的，手信不发货，大蛋糕18号-21号配送时间是11-18点，其它时间一律不配送 */
+
+    var curChoiceDate = $("#DeliveryTimeDay").val();
+    if ($("#TypeId").val() == 27 && checkDate('2015-02-17', CurentTime2(1)) && checkDate(CurentTime2(1), '2015-03-02')) {
+        return;
+    } else if (curChoiceDate == '2015-02-18' || curChoiceDate == '2015-02-19' || curChoiceDate == '2015-02-20' || curChoiceDate == '2015-02-21') {
+        //过年的几天 18点之前预约日期加1
+        var sTime = setInterval(function () {
+            if ($("#DeliveryTimeHour option").length > 10) {
+                $("#DeliveryTimeHour option:gt(" + ($("#DeliveryTimeHour option").length - 11) + ")").hide();
+                if ($("#DeliveryTimeHour").val().substring(0, 2) > 17 || $("#DeliveryTimeHour").val().indexOf("17:30~18:30") > -1) {
+                    $("#DeliveryTimeHour").val(1);//设置为第一个, 不然有问题
+                    AddPopup("预约时间不对,已修改");
+                    popup($(".p_box1"));
+                }
+                clearInterval(sTime);
+            }
+        }, 200);
+
+    } else {
+        $("#DeliveryTimeHour option:gt(" + ($("#DeliveryTimeHour option").length - 11) + ")").show();
+    }
+
+    //过年的几天 18点之后预约日期加1
+    if ((CurentTime2(1) == '2015-02-18' || CurentTime2(1) == '2015-02-19' || CurentTime2(1) == '2015-02-20' || CurentTime2(1) == '2015-02-21') && curDateHour > 12) {
+
+        $("#DeliveryTimeDay").removeAttr("onfocus");
+        $("#DeliveryTimeDay").unbind("focus");
+        $("#DeliveryTimeDay").bind("focus", function () {
+            WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: NewDate(CurentTime2(1)).DateAdd("d", 1).format("yyyy-MM-dd") });
+        });
+
+        return;
+    }
+
+    //母亲节设置
+    var arrM = new Array();
+    arrM[0] = 12682;
+    arrM[1] = 12683;
+    if (arrM.in_array($(".tabl_list tr:last>td:eq(1)").attr("mid")) && checkDate(CurentTime2(1), '2015-05-09')) {
+        $("#DeliveryTimeDay").removeAttr("onfocus");
+        $("#DeliveryTimeDay").unbind("focus");
+        $("#DeliveryTimeDay").bind("focus", function () {
+            WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: "2015-05-09" });
+        });
+
+        return;
+    }
+
+    arrM[0] = 20683;
+    arrM[1] = 20682;
+    arrM[2] = 20681;
+    arrM[3] = 20680;
+    if (arrM.in_array($(".tabl_list tr:last>td:eq(1)").attr("mid")) && checkDate(CurentTime2(1), '2015-10-31')) {
+        setTimeout(function () {
+            var curSystem = parseISO8601(CurentTime2(1));               //当前系统日期
+            $("#DeliveryTimeDay").unbind("focus");
+            $("#DeliveryTimeDay").focus(function () {
+                WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: "2015-10-30", maxDate: "2015-10-31" });
+            });
+            if (checkDate($("#DeliveryTimeDay").val(), "2015-10-30")) {
+                $("#DeliveryTimeDay").val("2015-10-30");
+            } else if (checkDate($("#DeliveryTimeDay").val(), "2015-10-31")) {
+                $("#DeliveryTimeDay").val("2015-10-31");
+            }
+            timeblur1();
+        }, 800);
+    }
+
+    setdeliverytime(flag);
+}
+
+//初始化日期时间
+function setdeliverytime(flag) {
+
+    var datetime = $("#DeliveryTimeDay").val();
+
+    var curdate = curDateStr;
+    if (curdate == datetime || flag == 1) {
+        //6磅蛋糕必须第二天
+        if ($(".d_title i").text() == "约6磅") {
+            setTimeout(function () {
+                timeblur1($("#DeliveryTimeHour").val());    //获取所有时间
+                var currdate2 = NewDate(curDateStr);//当前日期 
+                $("#DeliveryTimeDay").removeAttr("onfocus");
+                $("#DeliveryTimeDay").unbind("focus");
+                $("#DeliveryTimeDay").bind("focus", function () {
+                    WdatePicker({ dateFmt: 'yyyy-MM-dd', minDate: currdate2.DateAdd("d", 1).format("yyyy-MM-dd") });
+                })
+                $("#DeliveryTimeDay").val(currdate2.DateAdd("d", 1).format("yyyy-MM-dd"));
+            }, 888);
+            return;
+        }
+
+        timeblur2($("#DeliveryTimeHour").val());    //获取当前的日期的时间 
+        //秒杀设置预约时间最长为二个月
+        if (modelType == 2) {
+            var currdate2 = NewDate(curDateStr);//当前日期  
+            $("#DeliveryTimeDay").removeAttr("onfocus");
+            $("#DeliveryTimeDay").unbind("focus");
+            $("#DeliveryTimeDay").bind("focus", function () {
+                WdatePicker({
+                    dateFmt: 'yyyy-MM-dd', minDate: currdate2.DateAdd("d", 0).format("yyyy-MM-dd"), maxDate: currdate2.DateAdd("m", 2).format("yyyy-MM-dd")
+                });
+            })
+        }
+    }
+    else {
+        timeblur1($("#DeliveryTimeHour").val());    //获取所有时间
+    }
+
+    //广州预售
+    if (UserId) {
+
+        if ($("#userAddress>dl input[name='r5']:checked").closest("dl").attr("cityname") == "广州市" && $("#DeliveryTimeHour option").length == 27) {
+            $("#DeliveryTimeHour option:lt(2)").hide();   //广州从10点开始
+            if ($("#DeliveryTimeHour option:checked").text() == "09:00~10:00" || $("#DeliveryTimeHour option:checked").text() == "09:30~10:30") {
+                $("#DeliveryTimeHour option:nth-child(3)").attr("selected", "selected");
+            }
+        } else {
+            $("#DeliveryTimeHour option:lt(2)").show();   //
+            $("#DeliveryTimeHour option:nth-child(0)").attr("selected", "selected");
+        }
+
+
+    } else {
+
+    }
+
+}
+
+
+//获取18-21点的预约时间列表
+function arrnew() {
+    var str = "";
+    var currenthour = parseInt(curDateHour);
+    if (currenthour >= 18 && currenthour <= 21) {
+        for (var i = 0; i < arrHour.length; i++) {
+            if (arrHour[i].indexOf(18) > 0 || arrHour[i].indexOf(19) > 0 || arrHour[i].indexOf(20) > 0 || arrHour[i].indexOf(21) > 0) {
+                str += arrHour[i] + ",";
+            }
+        }
+    }
+    var result = str.substring(0, str.length - 1);
+    return result;
+};
+
+//获取22-23点的预约时间列表
+function arrnews() {
+    var str = "";
+    var currenthour = parseInt(curDateHour);
+    if (currenthour >= 22 && currenthour <= 23) {
+        for (var i = 0; i < arrHour.length; i++) {
+            if (arrHour[i].indexOf(22) > 0 || arrHour[i].indexOf(23) > 0) {
+                str += arrHour[i] + ",";
+            }
+        }
+    }
+    var result = str.substring(0, str.length - 1);
+    return result;
+}
+
+//有优先小时，如地区包含优惠则调用方法
+function changeHour(obj) {
+
+    var option = $(obj).children("option:selected").val();
+    var currdate = NewDate($("#DeliveryTimeDay").val());//当前日期
+    var datetime = currdate.format("yyyy-MM-dd");   //当前日期
+    var olddate = curDateStr;       //当前配送日期
+    var currenthour = parseInt(curDateHour);
+    timeblur2(option);
+}
+
+
+//弹出层
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+//改变磅数
+function clickAttr(el, sell, show) {
+
+    var Discount = $("#Discount").val();
+    $(el).addClass("cur").siblings().removeClass("cur");
+    $("#sellPrice").text(setNumPoint(sell));
+    $("#showPrice").text(setNumPoint(show));
+    //有优惠折扣
+    if (show != 0 && Discount > 0) {
+        $("#discount").text(setNumFormat(Discount));
+        $("#sellPrice").text(setNumFormat(Discount / 10 * show, 1));
+    }
+    else if (show != 0) {
+        $("#discount").text(setNumFormat(sell / show * 10, 1));
+    } else {
+        $("#discount").text(setNumPoint(0));
+    }
+    if ($("#discount").text() == 10)
+        $("#discount").parent().attr("style", "visibility:hidden")
+    else
+        $("#discount").parent().attr("style", "visibility:visible")
+}
+//详情页数量加减
+$(function () {
+    $('.pro_ji_num').on('click', '.dd_num a', function () {
+        //alert(222222);
+        var value = parseInt($(this).siblings(":text").val());
+        if (isNaN(value))
+            value = 1;
+
+        if ($(this).attr("class") != "jian") {
+            if (value > 1)
+                value--;
+            $(this).siblings(":text").val(value);
+        } else {
+            if (value >= 20)
+                value = 20;
+            else {
+                value++;
+            }
+
+            $(this).siblings(":text").val(value);
+        }
+        var p = $(this).closest('td').prev().find("span").text();
+
+        //var p = $("#tableBuy1 tbody td").eq(1).find("span").text();
+        var pa = setNumPoint(eval(value * p));
+        //$("#tableBuy1 tbody td").eq(3).find("span").text(pa);
+        $(this).closest('td').next().find("span").text(pa);
+        sumPriceActual();
+    });
+    $('.pro_ji_num').on('keyup', '.dd_num :text', function () {
+        var value = $(this).val();
+        if (isNaN(value) || value < 1) {
+            $(this).val(1);
+            value = 1;
+        }
+        else if (value > 20) {
+            $(this).val(20)
+            value = 20;
+        }
+        //var p = $("#tableBuy1 tbody td").eq(1).find("span").text();
+        var p = $(this).closest('td').prev().find("span").text();
+        var pa = setNumPoint(eval(value * p));
+        $(this).closest('td').next().find("span").text(pa);
+        // $("#tableBuy1 tbody td").eq(3).find("span").text(pa);
+        sumPriceActual();
+    });
+})
+//生成弹出层（购物车）
+var orderCar = new Map();
+
+function AddCarPopup(obj, MId) {
+    if (!UserId) {
+        AddPopupLogin();
+        return;
+    }
+    var divCover = document.createElement("div");
+    if (divCover != undefined) {
+        $("#addcar").remove();
+    }
+
+
+    var temp = '';
+    temp += '<div class="list_title"><small class="pull-right icon_li_closed"></small><h1>{productname}</h1></div>';
+    temp += ' <div><span class="list_price">价格：<i><em>￥</em><span id="sellPrice">{sellprice}<span></i></span><span class="list_price del">原价：<i><em>￥</em><span id="showPrice">{showprice}<span></i></span></div>';
+    temp += '<div class="guige_list" style="margin:10px 20px 0 20px;">';
+    //获取产品规格；
+    $.ajax({
+        type: "POST",
+        async: false,
+        url: "/Product/GetProducts",
+        data: { id: MId },
+        dataType: "json",
+        success: function (data) {
+
+            $(data).each(function (index, value) {
+                var classcur = '';
+                if (index == 0) {
+                    classcur = 'cur';
+                }
+                var cm = "";
+                var cj = "";
+                var rs = "";
+                var arry = "";
+                if (value.ProductAttrMark != null && value.ProductAttrMark.indexOf(',') != -1) {
+                    arry = value.ProductAttrMark.split(',');
+                }
+                if (arry.length >= 3) {
+                    var cm = arry[0];
+                    var cj = arry[1];
+                    var rs = arry[2];
+                }
+                temp += '<a href="javascript:void(0);" class="' + classcur + '" pid="' + value.Id + '" sell="' + value.PriceWeb + '" show="' + value.PriceShow + '" onclick="clickAttr(this,' + value.PriceWeb + ',' + value.PriceShow + ');">' + value.ProductAttr + '<div class="gg_box"><em class="fa fa-caret-down"></em><table width="0" border="0" cellspacing="0" cellpadding="0"><tbody><tr><th>尺寸 (cm)</th><th>标准餐具(份)</th><th>适合人数（位）</th></tr><tr><td>' + cm + '</td><td>' + cj + '</td><td>' + rs + '</td></tr></tbody></table></div></a>';
+            });
+        },
+        error: function (err) { }
+    });
+
+
+    temp += '</div> <div class="list_num"><span class="dd_num2" style="display:none;">1</span><span class="dd_num"><a class="add" href="javascript:">-</a><input name="" type="text" value="1"><a class="jian" href="javascript:">+</a></span></div><div class="btn_list_box"><a class="b0" href="javascript:" style="text-decoration: none;">加入购物车</a>&nbsp;<a class="b1" href="javascript:">去结算</a></div>';
+    temp = temp.replace(/{productname}/g, $(obj).parent().parent().find("h1").text());
+    temp = temp.replace(/{sellprice}/g, $(obj).parent().parent().find(".pl_jia b").text());
+    temp = temp.replace(/{showprice}/g, $(obj).parent().parent().find(".pl_yj ins").text());
+
+
+
+    divCover.setAttribute("id", "addcar");
+    divCover.setAttribute("class", "list_join_shop_box");
+    divCover.innerHTML = temp;
+    $("body").append($(divCover));
+    $("#addcar").css("top", $(obj).parent().parent().offset().top);
+    $("#addcar").css("left", $(".cont_word").eq(0).offset().left - 30);
+    setTimeout(function () { $(".b1").focus() }, 100);
+    setTimeout(function () { $(".b0").focus() }, 100);
+    //购物车规格描述显示隐藏
+    setTimeout(function () {
+        $(".guige_list a").hover(
+            function () {
+                $(this).find("div").show();
+            }, function () {
+                $(this).find("div").hide();
+            });
+    }, 100);
+    //购物车数量加减
+    setTimeout(function () {
+        $('.list_num').on('click', '.dd_num a', function () {
+            var value = parseInt($(this).siblings(":text").val());
+            if (isNaN(value))
+                value = 1;
+
+            if ($(this).attr("class") != "jian") {
+                if (value > 1)
+                    value--;
+                $(this).siblings(":text").val(value);
+            } else {
+                if (value >= 20)
+                    value = 20;
+                else {
+                    value++;
+                }
+
+                $(this).siblings(":text").val(value);
+            }
+        });
+    }, 100);
+    setTimeout(function () {
+        $('.list_num').on('keyup', '.dd_num :text', function () {
+            var value = $(this).val();
+            if (isNaN(value) || value < 1) {
+                $(this).val(1);
+                value = 1;
+            }
+            else if (value > 20) {
+                $(this).val(20)
+                value = 20;
+            }
+        });
+    }, 100);
+
+    setTimeout(function () {
+        $(".icon_li_closed").click(function () {
+
+            $("#addcar").remove();
+        })
+    }, 100);
+    setTimeout(function () {
+        $(".b1").click(function () {
+            if (UserId && UserId != 12) {
+                window.location = "/Product/Buy2";
+            } else {
+                window.location = "/Login/Index";
+            }
+        })
+    }, 100);
+    setTimeout(function () {
+        $(".b0").click(function () {
+            var pid = $(".guige_list").find(".cur").attr("pid");
+            if (pid == undefined) {
+                $("#addcar").remove();
+                AddPopup("请联系管理员添加产品规格");
+                popup($(".p_box1"));
+                return;
+            }
+            if (UserId && UserId != 12) {
+                addCar(MId, UserId);
+                // $("#addcar").remove();
+            } else {
+                window.location = "/Login/Index";
+            }
+
+        })
+    }, 100);
+}
+//添加到购物车
+function addCar(mid, uid) {
+    var midlist = "";
+    if (uid == "") {
+        AddPopupLogin();
+        //AddPopup("请联系管理员添加产品规格");
+        //popup($(".p_box1"));
+        return;
+    }
+    var pid = $(".guige_list .cur").attr("pid");
+    if (pid == undefined) {
+        AddPopup("请联系管理员添加产品规格");
+        popup($(".p_box1"));
+        return;
+    }
+    //if (pid == "") {
+    //    return;
+    //}
+    var amount = $(".pro_ji_num input[type=text]").val();
+  
+
+    $.post("/Product/AddCar", { UId: uid, MId: mid, PId: pid, Amount: amount }, function (data, textStatus) {
+        var d = eval("(" + data + ")");
+        AddPopup(d.message);
+     setTimeout(   location.reload(),1000);
+        popup($(".p_box1"));
+    });
+}
+//购物车删除
+function delCar(obj) {
+    //alert(123111);
+    var id = $(obj).parent().attr("mid");
+
+    if (!UserId) {
+        AddPopupLogin();
+        return;
+    }
+
+    $.post("/Product/DelCar", { Id: id }, function (data) {
+        var d = eval("(" + data + ")");
+        if (d.message == "删除成功") {
+            $(obj).parent().parent().remove()
+        }
+
+    });
+
+}
+//优惠卷删除
+function DelPackage(obj) {
+    //alert(123111);
+    var id = $(obj).parent().attr("mid");
+    if (!UserId) {
+        AddPopupLogin();
+        return;
+    }
+    $.post("/Index/DelPackage", { Id: id }, function (data) {
+        var d = eval("(" + data + ")");
+        if (d.message == "删除成功") {
+            $(obj).parent().parent().remove()
+        }
+    });
+}
+// 弹出层位置居中
+function popup(popupName) {
+    var _scrollHeight = $(document).scrollTop(),//获取当前窗口距离页面顶部高度
+    _windowHeight = $(window).height(),//获取当前窗口高度
+    _windowWidth = $(window).width(),//获取当前窗口宽度
+    _popupHeight = popupName.height(),//获取弹出层高度
+    _popupWeight = popupName.width();//获取弹出层宽度
+    _posiTop = (_windowHeight - _popupHeight) / 2 + _scrollHeight;
+    _posiLeft = (_windowWidth - _popupWeight) / 2;
+    popupName.css({ "left": _posiLeft + "px", "top": _posiTop + "px", "display": "block" });//设置position
+}
+
+// 生成弹出层
+function AddPopup(msg) {
+    AddCoverLayer();
+    if (!msg)
+        msg = '抱歉，购买过本产品才能评价！';
+    var divCover = document.createElement("div");
+    divCover.setAttribute("id", "divCover");
+    divCover.setAttribute("class", "popup_box p_box1");
+    divCover.setAttribute("style", "z-index: 9999");
+    divCover.innerHTML = '<h2 class="bt4"></h2><div class="pop_cont"><div class="center"><i class=""></i>' + msg + '</div></div><div class="pop_btn"><a class="login_btn_succese" href="javascript:">确定</a></div>';
+    $("body").append($(divCover));
+    setTimeout(function () { $(".login_btn_succese").focus() }, 100)
+    setTimeout(function () { $(".login_btn_succese").click(function () { $("#divCover,#CoverLayer").remove(); }) }, 100)
+}
+
+// 生成弹出层 
+function AddPopupSX() {
+    AddCoverLayer();;
+    var divCover = document.createElement("div");
+    divCover.setAttribute("id", "divCover");
+    divCover.setAttribute("class", "popup_box p_box4");
+    divCover.setAttribute("style", "z-index: 9999;width:815px;height:455px;");
+    divCover.innerHTML = '<img src="/content/imagesweb/sx.jpg"/>';
+    $("body").append($(divCover));
+    popup($(".p_box4"));
+    $('.p_box4 img').live('click', function () {
+        $("#divCover").remove();
+        $("#CoverLayer").remove();
+    });
+}
+
+function closeLoginPanel() {
+    $(".p_box4").hide();
+    $("#CoverLayer").remove();
+}
+
+// 生成弹出层(登陆)
+function AddPopupLogin(flag, msg) {
+    var link = "";
+    //想进入个人中心时弹窗则默认跳转到后台管理页面 window.location.host chrome不带http://,IE带http;// ,所以先替换
+    if (flag) {
+        link = "http://" + window.location.host.replace("http://", "") + flag;
+    } else {
+        link = window.location.href;
+    }
+    var context = "您暂未登陆，是否登陆？";
+    if (msg) {
+        context = msg;
+    }
+
+    AddCoverLayer();;
+    var divCover = document.createElement("div");
+    divCover.setAttribute("id", "divCover");
+    divCover.setAttribute("class", "popup_box p_box4");
+    divCover.setAttribute("style", "z-index: 2002");
+    divCover.innerHTML = '<div class="pop_cont"><div class="p_box2_tips" style="height:65px;margin-top:35px;"><i class="pop_cg"></i>' + context + '</div></div><div class="pop_btn"><div style="margin-top: 10px;"><a class="back_home" href="javascript:" onclick="closeLoginPanel()"><i></i>否</a><a class="submit_order" href="/Login/Index?link=' + link + '"><i></i>是</a></div></div>';
+    $("body").append($(divCover));
+    popup($(".p_box4"));
+};
+
+// 遮照层 全屏 
+function AddCoverLayer() {
+    var width = screen.availWidth;
+    var height = screen.availHeight;
+    var divCover = document.createElement("div");
+    divCover.setAttribute("id", "CoverLayer");
+    divCover.innerHTML = '<div style="z-index: 2001; border-bottom: medium none; position: fixed; filter: alpha(opacity=40); '
+        + 'border-left: medium none; padding-bottom: 0px; background-color: #000000; margin: 0px; padding-left: 0px; '
+        + 'width: ' + width + 'px; padding-right: 0px; zoom: 1; height: ' + height + 'px; border-top: medium none; top: 0px; cursor: default;' + 'border-right: medium none; padding-top: 0px; left: 0px; opacity: 0.7"></div>';
+    document.body.appendChild(divCover);
+}
+
+
+// 遮照层 中间投注内容
+function AddCoverLayer2() {
+    $("#CoverLayer").remove();
+    var width = document.getElementById("gameCenter").clientWidth;
+    var height = document.getElementById("gameCenter").clientHeight;
+    var divCover = document.createElement("div");
+    divCover.setAttribute("id", "CoverLayer");
+    divCover.innerHTML = '<div style="z-index: 2001; border-bottom: medium none; position: absolute; filter: alpha(opacity=40); '
+        + 'border-left: medium none; padding-bottom: 0px; background-color: #000000; margin: 0px; padding-left: 0px; '
+        + 'width: ' + width + 'px; padding-right: 0px; zoom: 1; height: ' + height + 'px; border-top: medium none; top: 93px; cursor: default;' + 'border-right: medium none; padding-top: 0px; opacity: 0.7"></div>';
+    $("#gameCenter").append($(divCover));
+}
+
+
+//商品详情悬浮置顶 详情页用
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var FixedBox = function (el) {
+    this.element = el;
+    this.BoxY = getXY(this.element).y;//获取的高度不对
+    this.Y = $("#productNav").offset().top; //当前对象的顶部位置
+}
+
+FixedBox.prototype = {
+    setCss: function () {
+        //可见区域到顶部的高度
+        var windowST = (document.compatMode && document.compatMode != "CSS1Compat") ? document.body.scrollTop : document.documentElement.scrollTop || window.pageYOffset;
+        if (windowST > this.Y) {
+            this.element.style.cssText = "position:fixed; top:0px; background-color:#cdcdcd; z-index:20;";
+        } else {
+            this.element.style.cssText = "";
+        }
+    }
+};
+
+//添加事件
+function addEvent(elm, evType, fn, useCapture) {
+    //兼容 Mozilla 不含 on
+    if (elm.addEventListener) {
+        elm.addEventListener(evType, fn, useCapture);
+        return true;
+    } else if (elm.attachEvent) {
+        var r = elm.attachEvent('on' + evType, fn);
+        return r;
+    }
+    else {
+        elm['on' + evType] = fn;
+    }
+}
+
+//获取元素的XY坐标；
+function getXY(el) {
+    return document.documentElement.getBoundingClientRect && (function () {//取元素坐标，如元素或其上层元素设置position relative
+        var pos = el.getBoundingClientRect();
+        return { x: pos.left + document.documentElement.scrollLeft, y: pos.top + document.documentElement.scrollTop };
+    })() || (function () {
+        var _x = 0, _y = 0;
+        do {
+            _x += el.offsetLeft;
+            _y += el.offsetTop;
+        } while (el = el.offsetParent);
+        return { x: _x, y: _y };
+    })();
+}
+
+//实例化；
+$(function () {
+    if (navigator.userAgent.indexOf("MSIE") > 0) {
+        //是否是IE浏览器 
+        if (navigator.userAgent.indexOf("MSIE 6.0") > 0) {
+            document.title = '御蝶坊-6';
+            //6.0 使用1.CSS  
+            $("body").html("<div style='margin:50px 0 0 50px;'><h3>请用IE8及以上版本浏览器访问.</h3><br><a href='http://down.360safe.com/se/360se_setup.exe'>360下载</a><br><br><a href='http://dlsw.baidu.com/sw-search-sp/soft/9d/14744/ChromeStandaloneSetup.1415762079.exe'>Chrome下载</a></div>");
+            return;
+
+        }
+        if (navigator.userAgent.indexOf("MSIE 7.0") > 0) {
+            //7.0 使用2.CSS 
+            document.title = '御蝶坊-7';
+            $("body").html("<div style='margin:50px 0 0 50px;'><h3>请用IE8及以上版本浏览器访问.</h3><br><a href='http://down.360safe.com/se/360se_setup.exe'>360下载</a><br><br><a href='http://dlsw.baidu.com/sw-search-sp/soft/9d/14744/ChromeStandaloneSetup.1415762079.exe'>Chrome下载</a></div>");
+            return;
+        } if (navigator.userAgent.indexOf("MSIE 8.0") > 0) {
+            //7.0 使用2.CSS 
+            //document.title = '御蝶坊-8'; 
+            //$("body").html("<div style='margin:50px 0 0 50px;'><h3>请用IE8及以上版本浏览器访问.</h3><br><a href='http://down.360safe.com/se/360se_setup.exe'>360下载</a><br><br><a href='http://dlsw.baidu.com/sw-search-sp/soft/9d/14744/ChromeStandaloneSetup.1415762079.exe'>Chrome下载</a></div>");
+            return;
+        }
+    } else {
+        //否则使用3.CSS 还有具体的浏览器 你可以用navigator.userAgent 去获取信息 具体使用 看你自己 
+        //Css.innerHTML = '<link href="3.css" rel="stylesheet" type="text/css" >'
+    }
+
+    var tempproductNav = document.getElementById("productNav");
+    if (tempproductNav != null) {
+        var divA = new FixedBox(tempproductNav);
+        addEvent(window, "scroll", function () {
+            divA.setCss();
+        });
+    }
+});
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//根据select创建div
+function createSelect(select_container, index) {
+
+    //创建select容器，class为select_box，插入到select标签前
+    var tag_select = $('<div></div>');//div相当于select标签
+    tag_select.attr('class', 'select_box');
+    tag_select.insertBefore(select_container);
+
+    //显示框class为select_showbox,插入到创建的tag_select中
+    var select_showbox = $('<div></div>');//显示框
+    select_showbox.css('cursor', 'pointer').attr('class', 'select_showbox').appendTo(tag_select);
+
+    //创建option容器，class为select_option，插入到创建的tag_select中
+    var ul_option = $('<ul></ul>');//创建option列表
+    ul_option.attr('class', 'select_option');
+    ul_option.appendTo(tag_select);
+    createOptions(index, ul_option, select_showbox);//创建option
+
+    //点击显示框
+    tag_select.toggle(function () {
+        ul_option.show();
+    }, function () {
+        ul_option.hide();
+    });
+
+    var li_option = ul_option.find('li');
+    li_option.on('click', function () {
+        $(this).addClass('selected').siblings().removeClass('selected');
+        var value = $(this).text();
+        select_showbox.text(value);
+        select_showbox.attr("value", $(this).attr("value"));
+        ul_option.hide();
+    });
+
+    li_option.hover(function () {
+        $(this).addClass('hover').siblings().removeClass('hover');
+    }, function () {
+        li_option.removeClass('hover');
+    });
+
+}
+
+function createOptions(index, ul_list, select_showbox) {
+    //获取被选中的元素并将其值赋值到显示框中
+    var options = selects.eq(index).find('option'),
+        selected_option = options.filter(':selected'),
+        selected_index = selected_option.index(),
+        showbox = ul_list.prev();
+    showbox.text(selected_option.text());
+
+
+    //为每个option建立个li并赋值
+    for (var n = 0; n < options.length; n++) {
+        var tag_option = $('<li></li>'),//li相当于option
+            txt_option = options.eq(n).text(),
+            txt_optionAttr = options.eq(n).val();
+
+        tag_option.attr('value', txt_optionAttr);
+        tag_option.text(txt_option).css('cursor', 'pointer').appendTo(ul_list);
+
+        //为被选中的元素添加class为selected
+        if (n == selected_index) {
+            tag_option.attr('class', 'selected');
+            select_showbox.attr('value', options.eq(n).val());//把默认的第一个li的值赋给div的自定义属性value;
+        }
+    }
+}
+
+function cc(data, json) {
+    if (navigator.userAgent.indexOf("MSIE 6.0") > 0 || navigator.userAgent.indexOf("MSIE 7.0") > 0 || navigator.userAgent.indexOf("MSIE 8.0") > 0) {
+        return;
+    }
+    if (json)
+        console.log(JSON.stringify(data));
+    else
+        console.log(data);
+}
+
+//格式化日期（new Date）（兼容IE8）
+function NewDate(str) {
+    str = str.split('-');
+    var date = new Date();
+    date.setUTCFullYear(str[0], str[1] - 1, str[2]);
+    date.setUTCHours(0, 0, 0, 0);
+    return date;
+}
+
+//新建cookie。
+//hours为空字符串时,cookie的生存期至浏览器会话结束。hours为数字0时,建立的是一个失效的
+//cookie, 这个cookie会覆盖已经建立过的同名、同path的cookie（如果这个cookie存在）。
+function setCookie(name, value, hours, path) {
+    var name = escape(name);
+    var value = escape(value);
+    var expires = new Date();
+    expires.setTime(expires.getTime() + hours * 3600000);
+    path = path == "" ? "" : ";path=" + path;
+    _expires = (typeof hours) == "string" ? "" : ";expires=" + expires.toUTCString();
+    document.cookie = name + "=" + value + _expires + path;
+}
+
+//获取cookie值
+function getCookie(name) {
+    var name = escape(name);
+    //读cookie属性，这将返回文档的所有cookie
+    var allcookies = document.cookie;
+    //查找名为name的cookie的开始位置
+    name += "=";
+    var pos = allcookies.indexOf(name);
+    //如果找到了具有该名字的cookie，那么提取并使用它的值
+    if (pos != -1) {                                             //如果pos值为-1则说明搜索"version="失败
+        var start = pos + name.length;                  //cookie值开始的位置
+        var end = allcookies.indexOf(";", start);        //从cookie值开始的位置起搜索第一个";"的位置,即cookie值结尾的位置
+        if (end == -1) end = allcookies.length;        //如果end值为-1说明cookie列表里只有一个cookie
+        var value = allcookies.substring(start, end); //提取cookie的值
+        return (value);                           //对它解码      
+    }
+    else return "";                               //搜索失败，返回空字符串
+}
+
+//删除cookie
+function deleteCookie(name, path) {
+    var name = escape(name);
+    var expires = new Date(0);
+    path = path == "" ? "" : ";path=" + path;
+    document.cookie = name + "=" + ";expires=" + expires.toUTCString() + path;
+}
+
+
+function getExplorerInfo() {
+    var explorer = window.navigator.userAgent.toLowerCase();
+    //ie 
+    if (explorer.indexOf("msie") >= 0) {
+        var ver = explorer.match(/msie [\d.]+;/gi);
+        return { type: "IE", version: ver };
+    }
+        //firefox 
+    else if (explorer.indexOf("firefox") >= 0) {
+        var ver = explorer.match(/firefox\/[\d.]+/gi);
+        return { type: "Firefox", version: ver };
+    }
+        //Chrome
+    else if (explorer.indexOf("chrome") >= 0) {
+        var ver = explorer.match(/chrome\/[\d.]+/gi);
+        return { type: "Chrome", version: ver };
+    }
+        //Opera
+    else if (explorer.indexOf("opera") >= 0) {
+        var ver = explorer.match(/opera.[d.]+/gi);
+        return { type: "Opera", version: ver };
+    }
+        //Safari
+    else if (explorer.indexOf("Safari") >= 0) {
+        var ver = explorer.match(/version\/[d.]+/gi);
+        return { type: "Safari", version: ver };
+    } else {
+        return { type: "undefined", version: 0 };
+    }
+}
+
+function getBrowserInfo2() {
+    var agent = navigator.userAgent.toLowerCase();
+
+    var regStr_ie = /msie [\d.]+;/gi;
+    var regStr_ff = /firefox\/[\d.]+/gi
+    var regStr_chrome = /chrome\/[\d.]+/gi;
+    var regStr_saf = /safari\/[\d.]+/gi;
+    //IE
+    if (agent.indexOf("msie") > 0) {
+        return agent.match(regStr_ie);
+    }
+
+    //firefox
+    if (agent.indexOf("firefox") > 0) {
+        return agent.match(regStr_ff);
+    }
+
+    //Chrome
+    if (agent.indexOf("chrome") > 0) {
+        return agent.match(regStr_chrome);
+    }
+
+    //Safari
+    if (agent.indexOf("safari") > 0 && agent.indexOf("chrome") < 0) {
+        return agent.match(regStr_saf);
+    }
+
+}
+
+
+// 获取浏览器名称及版本信息 
+function appInfo() {
+    var browser = {
+        msie: false, firefox: false, opera: false, safari: false,
+        chrome: false, netscape: false, appname: 'unknown', version: 0
+    },
+    userAgent = window.navigator.userAgent.toLowerCase();
+    if (/(msie|firefox|opera|chrome|netscape)\D+(\d[\d.]*)/.test(userAgent)) {
+        browser[RegExp.$1] = true;
+        browser.appname = RegExp.$1;
+        browser.version = RegExp.$2;
+    } else if (/version\D+(\d[\d.]*).*safari/.test(userAgent)) { // safari 
+        browser.safari = true;
+        browser.appname = 'safari';
+        browser.version = RegExp.$2;
+    }
+
+    return browser;
+}
+
+//// 调用示例 
+//var myos = appInfo();
+//// 如果当前浏览器是IE，弹出浏览器版本,否则弹出当前浏览器名称和版本 
+//if (myos.msie) {
+//    alert(myos.version);
+//} else {
+//    alert(myos.appname + myos.version);
+//}
+
+
+//系统平台
+function GetOSInfo() {
+    var _pf = navigator.platform;
+    var appVer = navigator.userAgent;
+    if (_pf == "Win32" || _pf == "Windows") {
+        if (appVer.indexOf("WOW64") > -1) {
+            _bit = "64位";
+        } else {
+            _bit = "32位";
+        }
+        if (appVer.indexOf("Windows NT 6.0") > -1 || appVer.indexOf("Windows Vista") > -1) {
+            if (_bit == '64位' || appVer.indexOf("Windows Vista") > -1) {
+                return 'Windows_vista ' + _bit;
+            } else {
+                return "Unknow1";
+            }
+        } else if (appVer.indexOf("Windows NT 6.1") > -1 || appVer.indexOf("Windows 7") > -1) {
+            if (_bit == '32位' || appVer.indexOf("Windows 7") > -1) {
+                return 'Windows_7 ' + _bit;
+            } else {
+                return "Unknow";
+            }
+        } else {
+            try {
+                var _winName = Array('2000', 'XP', '2003');
+                var _ntNum = appVer.match(/Windows NT 5.\d/i).toString();
+                return 'Windows_' + _winName[_ntNum.replace(/Windows NT 5.(\d)/i, "$1")] + " " + _bit;
+            } catch (e) { return 'Windows'; }
+        }
+    } else if (_pf == "Mac68K" || _pf == "MacPPC" || _pf == "Macintosh") {
+        return "Mac";
+    } else if (_pf == "X11") {
+        return "Unix";
+    } else if (String(_pf).indexOf("Linux") > -1) {
+        return "Linux";
+    } else {
+        return "Unknow";
+    }
+}
+
+//浏览器内核版本
+function getOs() {
+    var OsObject = "";
+    if (navigator.userAgent.indexOf("MSIE") > 0) {
+        return "MSIE";
+    }
+    if (isFirefox = navigator.userAgent.indexOf("Firefox") > 0) {
+        return "Firefox";
+    }
+    if (isSafari = navigator.userAgent.indexOf("Safari") > 0) {
+        return "Safari";
+    }
+    if (isCamino = navigator.userAgent.indexOf("Camino") > 0) {
+        return "Camino";
+    }
+    if (isMozilla = navigator.userAgent.indexOf("Gecko/") > 0) {
+        return "Gecko";
+    }
+}
+
+//操作系统
+function detectOS() {
+    var sUserAgent = navigator.userAgent;
+    var isWin = (navigator.platform == "Win32") || (navigator.platform == "Windows");
+    var isMac = (navigator.platform == "Mac68K") || (navigator.platform == "MacPPC") || (navigator.platform == "Macintosh") || (navigator.platform == "MacIntel");
+    if (isMac) return "Mac";
+    var isUnix = (navigator.platform == "X11") && !isWin && !isMac;
+    if (isUnix) return "Unix";
+    var isLinux = (String(navigator.platform).indexOf("Linux") > -1);
+    if (isLinux) return "Linux";
+    if (isWin) {
+        var isWin2K = sUserAgent.indexOf("Windows NT 5.0") > -1 || sUserAgent.indexOf("Windows 2000") > -1;
+        if (isWin2K) return "Win2000";
+        var isWinXP = sUserAgent.indexOf("Windows NT 5.1") > -1 || sUserAgent.indexOf("Windows XP") > -1;
+        if (isWinXP) return "WinXP";
+        var isWin2003 = sUserAgent.indexOf("Windows NT 5.2") > -1 || sUserAgent.indexOf("Windows 2003") > -1;
+        if (isWin2003) return "Win2003";
+        var isWinVista = sUserAgent.indexOf("Windows NT 6.0") > -1 || sUserAgent.indexOf("Windows Vista") > -1;
+        if (isWinVista) return "WinVista";
+        var isWin7 = sUserAgent.indexOf("Windows NT 6.1") > -1 || sUserAgent.indexOf("Windows 7") > -1;
+        if (isWin7) return "Win7";
+    }
+    return "other";
+}
+
+
+function ll() {
+    //if (!CheckNull()) return;
+    var parim = new Object();
+
+    parim["Name"] = "chenqi";
+    parim["PassWord"] = "123456";
+
+    $.ajax({
+        type: "POST",
+        url: "/Login/Index",
+        data: parim,
+        dataType: "json",
+        success: function (data) {
+            ////cc(data);
+            //if (data.isOK) {
+            //    if ($w("saveCookie").checked) {
+
+            //        setCookie("name", $w("name").value, 168, "/");
+            //        setCookie("pwd", $w("pwd").value, 168, "/");
+            //    }
+            //    if ($("#link").val() == "")
+            //        location.href = "/";
+            //    else {
+            //        //?mid=1123&pid=1133&num=1
+            //        //$("#link").val() 从&开始截断了
+            //        if (window.location.search.indexOf('&') - 1) {
+            //            location.href = window.location.search.replace("?link=", "");
+            //        } else {
+            //            location.href = $("#link").val();
+            //        }
+            //    }
+            //} else {
+            //    if ("密码不正确" == data.message) {
+            //        $("#msg").text("密码不正确,可尝试默认密码:123456");
+            //    }
+            //    else {
+            //        $("#msg").text(data.message);
+            //    }
+            //    $(".btn_login").text("登 陆");
+            //    //CodeChange();
+            //}
+        },
+        error: function (err) { }
+    });
+};
+
+
+
+//自定义字典对象
+function Dictionary() {
+    this.data = new Array();
+
+    this.set = function (key, value) {
+        this.data[key] = value;
+    };
+
+    this.get = function (key) {
+        return this.data[key];
+    };
+
+    this.remove = function (key) {
+        this.data[key] = null;
+    };
+
+    this.isEmpty = function () {
+        return this.data.length == 0;
+    };
+
+    this.size = function () {
+        return this.data.length;
+    };
+}
+
+function Map() {
+    this.keys = new Array();
+    this.data = new Array();
+    //添加键值对
+    this.set = function (key, value) {
+        if (this.data[key] == null) {//如键不存在则身【键】数组添加键名
+            this.keys.push(value);
+        }
+        this.data[key] = value;//给键赋值
+    };
+    //获取键对应的值
+    this.get = function (key) {
+        return this.data[key];
+    };
+    //去除键值，(去除键数据中的键名及对应的值)
+    this.remove = function (key) {
+        this.keys.remove(key);
+        this.data[key] = null;
+    };
+    //判断键值元素是否为空
+    this.isEmpty = function () {
+        return this.keys.length == 0;
+    };
+    //获取键值元素大小
+    this.size = function () {
+        return this.keys.length;
+    };
+}
+
+$(function () {
+    $(".md_tab>li").click(function () {
+        $(".md_tab>li").removeClass('cur');
+        $(this).addClass('cur');
+        $(this).find("a").css("textDecoration", "none");
+        //alert($(this).attr("areid"))
+        $.ajax({
+            type: "POST",
+            url: "/Tool/GetStore",
+            data: { areaid: $(this).attr("areid") },
+            dataType: "json",
+            success: function (data) {
+                $('.md_sub_box').empty();
+                $(data).each(function (index, value) {
+                    $('.md_sub_box').append('<div class="md_sub"><div class="md_sub0"><h3 class="pull-left">' + value.CompanyName + '</h3><a class="pull-left" href="javascript:"><i></i>查看地图</a><span class="pull-right">' + value.Tel + '</span><div class="spacer"></div></div><div class="md_sub1"><i class="pull-left"></i><p class="pull-right">' + value.Add + '</p><div class="spacer"></div></div></div>');
+                });
+            },
+            error: function (err) { }
+        });
+    })
+})

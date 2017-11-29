@@ -1,0 +1,612 @@
+﻿
+//详情页数量加减
+$(function () {
+   
+    $(document).on('click', '.pro_ji_num a', function () {
+        var value = parseInt($(this).siblings(":text").val());
+        if (isNaN(value))
+            value = 1;
+
+        if ($(this).attr("class") != "jian") {
+            if (value > 1)
+                value--;
+            $(this).siblings(":text").val(value);
+        } else {
+            if (value >= 20)
+                value = 20;
+            else {
+                value++;
+            }
+            $(this).siblings(":text").val(value);
+        }
+        var p = $(this).closest('td').prev().find("span").text();
+
+        //var p = $("#tableBuy1 tbody td").eq(1).find("span").text();
+        var pa = setNumPoint(eval(value * p));
+        //$("#tableBuy1 tbody td").eq(3).find("span").text(pa);
+        $(this).closest('td').next().find("span").text(pa);
+    });
+    $('.pro_ji_num').on('keyup', '.dd_num :text', function () {
+        var value = $(this).val();
+        if (isNaN(value) || value < 1) {
+            $(this).val(1);
+            value = 1;
+        }
+        else if (value > 20) {
+            $(this).val(20)
+            value = 20;
+        }
+        //var p = $("#tableBuy1 tbody td").eq(1).find("span").text();
+        var p = $(this).closest('td').prev().find("span").text();
+        var pa = setNumPoint(eval(value * p));
+
+        $(this).closest('td').next().find("span").text(pa);
+        // $("#tableBuy1 tbody td").eq(3).find("span").text(pa);
+    });
+
+    // 生成弹出层(登陆)
+    function AddPopupLogin(flag, msg) {
+       
+        var link = "";
+        //想进入个人中心时弹窗则默认跳转到后台管理页面 window.location.host chrome不带http://,IE带http;// ,所以先替换
+        if (flag) {
+            link = "http://" + window.location.host.replace("http://", "") + flag;
+        } else {
+            link = window.location.href;
+        }
+        var context = "您暂未登陆，是否登陆？";
+        if (msg) {
+            context = msg;
+        }
+        function setTimeLimit() {
+            var myDate = new Date();
+            var curr = new Date(Date.parse(CurentTime.replace(/-/g, "/"))); //当时时间
+            var stop = new Date(Date.parse(StopTime.replace(/-/g, "/"))); //结束时间,转换成Data();
+            var start = new Date(Date.parse(StartTime.replace(/-/g, "/"))); //开始时间,转换成Data();
+            var date3 = stop.getTime() - curr.getTime();  //时间差的毫秒数
+            if (curr.getTime() < start.getTime())
+            {
+                date3 = start.getTime() - curr.getTime();  //时间差的毫秒数
+                $('.b1').text('马上开始');
+                $('.b1').removeAttr('onclick');
+                $(".time_over>span").text("开始时间:");
+                $(".btn_buy>.btn_buy1").hide();
+            } else {
+                if (Sold==0) {
+                    $('.b1').removeAttr('onclick');
+                    $('.b1').text('秒杀已经结束');
+                }else {
+                    $('.b1').text('秒杀中...');
+                    $('.b1').removeAttr('onclick');
+                    $('.b1').click(function(){
+                        if (!UserId) {
+                            AddPopupLogin();
+                            return;
+                        }
+                        //buy1(@Model.Id);
+                    });
+                }
+                $(".time_over>span").text("剩余时间:");
+                $(".btn_buy>.btn_buy1").show();
+            }
+
+            maxtime = Math.floor(date3 / 1000);         //按秒计算
+            if (maxtime <= 0) {
+                $(".btn_buy a").hide();
+                $(".buy_disabled").show();
+                $(".buy_see").show();
+            }else{
+                timer = setInterval("CountDown()", 1000);
+            }
+        }
+
+        function buy1(id) {
+
+            //秒杀或抽奖
+            if (modelType == 3) {
+                window.location = "/Product/Buy1?mid=" + id;
+            } else {
+                var pid = $(".xq_guige").find(".cur").attr("pid");
+                if (pid == undefined) {
+                    AddPopup("请联系管理员添加产品规格");
+                    popup($(".p_box1"));
+                    return;
+                }
+
+                window.location = "/Product/Buy1?mid=" + id + "&pid=" + pid + "&num=" + $(".xq_guige input").val();
+            }
+        };
+    }
+})
+//计算总金额
+function sumPriceActual(flag) {
+    var xj = parseFloat($("#tableBuy1 tbody td").eq(1).find("span").text()) * parseFloat($("#tableBuy1 tbody td").eq(2).find("input").val());       //小计
+
+
+
+    var temp = $(".dd_jiao_box").find("div:first>label").text();
+    var dis = parseFloat(temp == "" ? "0" : temp);    //折扣价钱
+    //cc(temp);
+    var pei = 0;        //配件价钱
+    $(".d_xuan_list1").each(function () {
+        pei += parseFloat($(this).children(".co_cheng").find("span").text());
+    });
+
+    var sum = eval(xj + pei - dis);
+    //如果有推荐选则
+    var re = 0;
+    if ($(".zuhe_list label>input:checked").length > 0) {
+        $(".zuhe_list").each(function () {
+            if ($(this).find("label>input:checked").length > 0) {
+                re += setNumFormat($(this).find("b").text());
+            }
+        });
+    }
+
+    if (re > 0) {
+        sum += re;
+    }
+
+    //运费
+    var freightLimit = $("#FreightLimit").val();
+    var freight = $("#Freight").val();
+    if (freightLimit > 0 && freight > 0) {
+        if (sum < freightLimit) {
+            sum = setNumFormat(sum) + setNumFormat(freight);
+            $("#PriceFreight").text(setMoneyFormat(freight));
+        } else {
+            $("#PriceFreight").text("0.00");
+        }
+    };
+    var iscookie = $("#tableBuy1 tbody td").eq(1).attr("iscookie");
+    if (iscookie == 0 && checkDate('2015-06-28', CurentTime2(1)) && checkDate(CurentTime2(1), '2015-06-30')) {
+        $(".d_dan_result h3").show();
+        $(".d_dan_result h3").text("下单成功金额立减20元")
+    }
+
+    if (flag) {
+        if (flag == 2) {
+            return setMoneyFormat(sum); //实际价钱, 不算折扣
+        }
+        if ($("#PriceFreight").text() == "0.00" || $("#PriceFreight").text() == "") {
+            sum = setMoneyFormat(xj + pei + re);           //总金额
+        } else {
+            sum = setMoneyFormat(xj + pei + re + setNumFormat(freight));           //总金额+运费
+        }
+
+        return sum;
+    }
+    $("#tableBuy1 tbody td").eq(3).find("span").text(setMoneyFormat(xj));
+    $("#PriceActual").text(setMoneyFormat(sum));
+    $(".zi_red b").text(setMoneyFormat(sum));
+}
+var ordercount = 0;
+function buy1() {
+    if (ordercount > 0) {
+        AddPopup("每个用户每天只能秒杀一次");
+        popup($(".p_box1"));
+        return;
+    }
+    if ($("#PriceActual").text() < 0) {
+        AddPopup("页面未加载完成");
+        popup($(".p_box1"));
+        return;
+    }
+    if ($("#PriceActual").text() != sumPriceActual(2)) {
+        AddPopup("金额不对");
+        popup($(".p_box1"));
+        return;
+    }
+
+    var curUserId = "";
+    $.ajax({
+        type: "POST",
+        url: "GetCurUserId",
+        dataType: "text",
+        async: false,    //获取当前Id
+        success: function (data) {
+            curUserId = data;
+        }
+    });
+
+    if (curUserId != UserId && curUserId != 12) {
+        AddPopupLogin(0, "当前用户登陆失效，是否重新登陆？");
+        return false;
+    }
+
+
+
+    var el = $("body input[name=r7]").eq(2).closest("div").find("label>input:checked");//当前选中的代金券项
+    var elAll = $("body input[name=r7]").eq(2).closest("div").find("label>input");      //所有代金券
+    var curPos = elAll.index(el);                                                       //选中代金券的位置
+    ////选择使用线下的代金券号
+    //if (curPos == elAll.length - 1 && curPos != -1) {
+    //    var lastVoucher = $("body input[name=r7]").eq(2).closest("div").find(" input[type='text']").val();
+    //    if (lastVoucher == "") {
+    //        AddPopup("代金券号不能为空");
+    //        popup($(".p_box1"));
+    //        return;
+    //    }
+    //    if ($("#lastVoucherCode").val() != lastVoucher) {
+    //        AddPopup("代金券号不对");
+    //        popup($(".p_box1"));
+    //        return;
+    //    }
+    //}
+    $(".tj_jd .co_cheng").text("￥" + $(".dd_jiao_box").find("div:first>label").text());
+
+    //$(".tj_jd").find("span:last").text("优惠金额：");
+    //$(".tj_jd").find("span:last").text("  积分抵现：");
+    var indextr = 0;
+    $("#tableBuy1 tr").each(function () {
+        indextr++;
+        if (indextr != 1 && indextr != 2) {
+            var ProductAttr = $(this).data("ProductAttr");
+            var temp1 = '<tr class="d_xuan_list2" indexpid="{Id}" id="li-{Id}"><td valign="middle"><a href="javascript:void(0);"><img width="48" height="48" src="{TitleImg}" class="d_pic"></a><span class="d_title">{ProductName}<br> <i></i></span></td><td></td><td></td><td iscookie="{IsCookie}" show="{PriceShow}" mid="{MId}" pid="{PId}"><b>￥</b><span>{PriceUnit}</span></td><td>{amount}</td><td class="co_cheng"><b>￥</b><span>{PriceAmount}</span></td> </tr>';
+            temp1 = temp1.replace(/{TitleImg}/g, $(this).find("td").eq(0).find("img").attr("src"));
+            temp1 = temp1.replace(/{ProductName}/g, $(this).find("td").eq(0).find("span").text());
+            temp1 = temp1.replace(/{IsCookie}/g, $(this).find("td").eq(1).attr("iscookie"));
+            temp1 = temp1.replace(/{MId}/g, $(this).attr("indexpid"));
+            temp1 = temp1.replace(/{Id}/g, $(this).attr("indexpid"));
+            temp1 = temp1.replace(/{PriceUnit}/g, $(this).find("td").eq(1).find("span").text());
+            temp1 = temp1.replace(/{PriceShow}/g, $(this).find("td").eq(1).find("span").text());
+            temp1 = temp1.replace(/{PriceAmount}/g, $(this).find("td").eq(3).find("span").text());
+            temp1 = temp1.replace(/{amount}/g, $(this).find(".dd_num a").siblings(":text").val());
+            temp1 = temp1.replace(/{PId}/g, $(this).find("td").eq(1).attr("pid"));
+            $("#tableBuy2").append(temp1);
+            $("#li-" + $(this).attr("indexpid")).data("ProductAttr", ProductAttr);
+            sumPriceActual();
+        }
+    })
+
+    //var timearea = mapPlaceTime.get($("#PlaceId").val());
+    //if (timearea == undefined) {
+    //   // alert("首页左上 切换城市要先生成");
+    //}
+
+    var sptime = [];
+    //if (timearea != undefined) {
+    //    sptime = timearea.split("-");
+    //}
+    var indextemp = 0;
+    //把预约时间存放在数组里
+    $("#DeliveryTimeHour").children().each(function (index, value) {
+        if (sptime.length == 2) {
+
+            var hour = $(value).val().substring(0, 2);
+            if (hour >= parseInt(sptime[0]) && hour <= sptime[1]) {
+                if ($(value).val().substring(0, 5).indexOf(sptime[1] + ":30") > -1) {
+                    return false;
+                }
+                arrHour[indextemp] = $(value).val();
+                indextemp++;
+            }
+        }
+
+    });
+
+    if (sptime.length == 2) {
+        if (parseInt(sptime[0]) == 8) {
+            arrHour.unshift("08:00~09:00", "08:30~09:30");
+        }
+    }
+
+    timeblur2($("#DeliveryTimeHour").val());
+    $("#DeliveryTimeHour option:first").prop("selected", 'selected');
+
+    $("#buy2_co_cheng").text($("#buy1_co_cheng").text());
+    $("#buy2_dd_num").text($("#tableBuy1 .dd_num").find("input").val());
+    $("#buy1").hide();
+    $("#buy2").show();
+
+    $(window).scrollTop(0, 0);
+    sumPriceActual();
+}
+
+//添加到收藏
+function addFav(mid, uid) {
+    if (uid == "") {
+       AddPopupLogin();
+        return;
+    }
+    $.post("/Product/AddFav", { UId: uid, MId: mid }, function (data) {
+        var d = eval("(" + data + ")");
+        if (d.isOK == true) {
+            AddPopup("添加成功");
+            popup($(".p_box1"));
+        }
+    });
+
+}
+// 生成弹出层(登陆)
+function AddPopupLogin(flag, msg) {
+    var link = "";
+    //想进入个人中心时弹窗则默认跳转到后台管理页面 window.location.host chrome不带http://,IE带http;// ,所以先替换
+    if (flag) {
+        link = "http://" + window.location.host.replace("http://", "") + flag;
+    } else {
+        link = window.location.href;
+    }
+    var context = "您暂未登陆，是否登陆？";
+    if (msg) {
+        context = msg;
+    }
+
+    var divCover = document.createElement("div");
+    divCover.setAttribute("id", "divCover");
+    divCover.setAttribute("class", "popup_box p_box4");
+    divCover.setAttribute("style", "z-index: 2002");
+    divCover.innerHTML = '<div class="pop_cont"><div class="p_box2_tips" style="height:65px;margin-top:35px;"><i class="pop_cg"></i>' + context + '</div></div><div class="pop_btn"><div style="margin-top: 10px;"><a class="back_home" href="javascript:" onclick="closeLoginPanel()"><i></i>否</a><a class="submit_order" href="/Login/Index?link=' + link + '"><i></i>是</a></div></div>';
+    $("body").append($(divCover));
+    popup($(".p_box4"));
+};
+//生成弹出层（购物车）
+var orderCar = new Map();
+
+function AddCarPopup(obj, MId) {
+    if (!UserId) {
+        AddPopupLogin();
+        return;
+    }
+    var divCover = document.createElement("div");
+    if (divCover != undefined) {
+        $("#addcar").remove();
+    }
+
+
+    var temp = '';
+
+    temp += '<div class="list_title"><small class="pull-right icon_li_closed"></small><h1>{productname}</h1></div>';
+    //temp += '<div><span class="pricea"><i>￥</i><b>{sellprice}</b></div>';
+    temp += ' <div><span class="list_price ">价格：<i><em>￥</em><span id="sellPrice">{sellPrice}<span></i></span><span class="list_price del">原价：<i><em>￥</em><span id="showPrice">{showprice}<span></i></span></div>';
+    temp += '<div class="gga_tt"style="margin:10px 20px 0 20px;">';
+
+    //temp += '<div class="list_title"><small class="pull-right icon_li_closed"></small><h1>{productname}</h1></div>';
+    //temp += ' <div><span class="list_price pricea">价格：<i><em>￥</em><span id="sellPrice">{sellprice}<span></i></span><span class="list_price del">原价：<i><em>￥</em><span id="showPrice">{showprice}<span></i></span></div>';
+    //temp += '<div class="guige_list" style="margin:10px 20px 0 20px;">';
+    //获取产品规格；
+    $.ajax({
+        type: "POST",
+        async: false,
+        url: "/Product/GetProducts",
+        data: { id: MId },
+        dataType: "json",
+        success: function (data) {
+
+            $(data).each(function (index, value) {
+                var classcur = '';
+                if (index == 0) {
+                    classcur = 'cur';
+                }
+                var cm = "";
+                var cj = "";
+                var rs = "";
+                var arry = "";
+                if (value.ProductAttrMark != null && value.ProductAttrMark.indexOf(',') != -1) {
+                    arry = value.ProductAttrMark.split(',');
+                }
+                if (arry.length >= 3) {
+                    var cm = arry[0];
+                    var cj = arry[1];
+                    var rs = arry[2];
+                }
+                temp += '<a href="javascript:void(0);" class="' + classcur + '" pid="' + value.Id + '" sell="' + value.PriceWeb + '" show="' + value.PriceShow + '" onclick="clickAttr(this,' + value.PriceWeb + ',' + value.PriceShow + ');">' + value.ProductAttr + '<div class="gg_box"><em class="fa fa-caret-down"></em><table width="0" border="0" cellspacing="0" cellpadding="0"><tbody><tr><th>尺寸 (cm)</th><th>标准餐具(份)</th><th>适合人数（位）</th></tr><tr><td>' + cm + '</td><td>' + cj + '</td><td>' + rs + '</td></tr></tbody></table></div></a>';
+            });
+        },
+        error: function (err) { }
+    });
+
+
+    temp += '</div> <div class="list_num"><span class="dd_num2" style="display:none;">1</span><span class="dd_num"><a class="add" href="javascript:">-</a><input name="" type="text" value="1"><a class="jian" href="javascript:">+</a></span></div><div class="btn_list_box"><a class="b0" href="javascript:" style="text-decoration: none;">加入购物车</a>&nbsp;<a class="b1" href="javascript:">去结算</a></div>';
+    temp = temp.replace(/{productname}/g, $(obj).parent().parent().find("h1").text());
+    temp = temp.replace(/{sellprice}/g, $(obj).parent().parent().find(".pl_jia b").text());
+    temp = temp.replace(/{showprice}/g, $(obj).parent().parent().find(".pl_yj ins").text());
+   
+
+
+
+    divCover.setAttribute("id", "addcar");
+    divCover.setAttribute("class", "list_join_shop_box");
+    divCover.innerHTML = temp;
+    $("body").append($(divCover));
+    $("#addcar").css("top", $(obj).parent().parent().offset().top);
+    //$("#addcar a").attr("sell")
+    $("#addcar").css("left", $(".cont_word").eq(0).offset().left - 30);
+    setTimeout(function () { $(".b1").focus() }, 100);
+    setTimeout(function () { $(".b0").focus() }, 100);
+    //购物车规格描述显示隐藏
+    setTimeout(function () {
+        $(".guige_list a").hover(
+            function () {
+                $(this).find("div").show();
+            }, function () {
+                $(this).find("div").hide();
+            });
+    }, 100);
+    //购物车数量加减
+    setTimeout(function () {
+        $('.list_num').on('click', '.dd_num a', function () {
+            var value = parseInt($(this).siblings(":text").val());
+            if (isNaN(value))
+                value = 1;
+
+            if ($(this).attr("class") != "jian") {
+                if (value > 1)
+                    value--;
+                $(this).siblings(":text").val(value);
+            } else {
+                if (value >= 20)
+                    value = 20;
+                else {
+                    value++;
+                }
+
+                $(this).siblings(":text").val(value);
+            }
+        });
+    }, 100);
+    setTimeout(function () {
+        $('.list_num').on('keyup', '.dd_num :text', function () {
+            var value = $(this).val();
+            if (isNaN(value) || value < 1) {
+                $(this).val(1);
+                value = 1;
+            }
+            else if (value > 20) {
+                $(this).val(20)
+                value = 20;
+            }
+        });
+    }, 100);
+
+    setTimeout(function () {
+        $(".icon_li_closed").click(function () {
+
+            $("#addcar").remove();
+        })
+    }, 100);
+    setTimeout(function () {
+        $(".b1").click(function () {
+            if (UserId && UserId != 12) {
+                window.location = "/Product/Buy2";
+            } else {
+                window.location = "/Login/Index";
+            }
+        })
+    }, 100);
+    setTimeout(function () {
+        $(".b0").click(function () {
+            var pid = $(".guige_list").find(".cur").attr("pid");
+            if (pid == undefined) {
+                $("#addcar").remove();
+                AddPopup("请联系管理员添加产品规格");
+                popup($(".p_box1"));
+                return;
+            }
+            if (UserId && UserId != 12) {
+                addCar(MId, UserId);
+                // $("#addcar").remove();
+            } else {
+                window.location = "/Login/Index";
+            }
+
+        })
+    }, 100);
+}
+//var UserId = SessionHelper.Get("UserIdBefore");
+//function addCar(mid) { addCar(mid, SessionHelper.Get("UserIdBefore")); }
+//添加到购物车
+function addCar(mid, uid) {
+    //alert(222)
+    var midlist = "";
+    if (uid == "") {
+        AddPopupLogin();
+        return;
+    }
+    var pid = $(".guige_list .cur").attr("pid");
+    //var pid = $(".gga").find(".cur").attr("pid");
+    if (pid == undefined) {
+        //AddPopup("请联系管理员添加产品规格");
+        //popup($(".p_box1"));
+        return;
+    }
+    //if (pid == "") {
+    //    return;
+    //}
+    var amount = $(".pro_ji_num input[type=text]").val();
+  
+    $.post("/Product/AddCar", { UId: uid, MId: mid, PId: pid, Amount: amount }, function (data, textStatus) {
+        var d = eval("(" + data + ")");
+        AddPopup(d.message);
+        if (d.isOK) {
+            //window.location = "/Index/Cart";
+            //return;
+            //setTimeout(window.location = "/Index/Cart",500);
+        }
+        popup($(".p_box1"));
+    });
+}
+//购物车删除
+function delCar(obj) {
+    //alert(123132);
+    var id = $(obj).parent().attr("mid");
+
+    if (!UserId) {
+        AddPopupLogin();
+        return;
+    }
+
+    $.post("/Product/DelCar", { Id: id }, function (data) {
+        var d = eval("(" + data + ")");
+        if (d.message == "删除成功") {
+            $(obj).parent().parent().remove()
+        }
+    });
+
+}
+
+
+
+//计算时间差
+function Begintime(pramdate, pramend, objsate) {
+    //alert(pramdate);
+    var datesStatr = new Date();  //开始时间
+    var datesEnd = new Date(pramend.replace(/-/g, "/"));   //结束时间  /-/g 转换格式
+
+   
+
+    var Bdate = datesEnd.getTime() - datesStatr.getTime();  //时间差的毫秒数
+
+    //计算出相差天数
+    var days = Math.floor(Bdate / (24 * 3600 * 1000));
+
+    //计算出小时数
+    var leave1 = Bdate % (24 * 3600 * 1000);   //计算天数后剩余的毫秒数
+    var hours = Math.floor(leave1 / (3600 * 1000));
+
+    //计算相差分钟数
+    var leave2 = leave1 % (3600 * 1000);     //计算小时数后剩余的毫秒数
+    var minutes = Math.floor(leave2 / (60 * 1000));
+
+    //计算相差秒数
+    var leave3 = leave2 % (60 * 1000);   //计算分钟数后剩余的毫秒数
+    var seconds = Math.round(leave3 / 1000);
+
+    var result = '';
+    if (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0) {
+        var EndTime = new Date(pramend.replace(/-/g, "/"));   //结束时间
+        if (datesStatr > EndTime) {
+            result = '活动已结束';
+            objsate["state"] = 2;
+        } else {
+            result = '活动进行中';
+            objsate["state"] = 1;
+        }
+    } else {
+        result = "还剩 " + ((hours + days * 24) >= 10 ? (hours + days * 24) : '0' + (hours + days * 24)) + ":" + (minutes >= 10 ? minutes : +'0' + minutes) + ":" + (seconds >= 10 ? seconds : '0' + seconds);
+        objsate["state"] = 0;
+    }
+    return result;
+}
+
+
+function getTotal() {
+    var prices = 0;
+    var save = 0;
+    $('[name="check"]:checked').each(function () {
+        //alert(123123)
+        var GoodsMoney = parseFloat($(this).next().find('.sellprice').attr('value'));//父元素下的Class下的GoodsPrice的value 值
+        var GoodsMoneys = parseFloat($(this).next().find('.sellprice').data('name'));
+        prices += parseFloat(GoodsMoney);
+        save += parseFloat(GoodsMoneys);
+    });
+    //赋值
+    $("#priceTotal").text("￥" + prices.toFixed(2));
+    $("#save").text("￥" + save.toFixed(2));
+    //priceTotal. = parseFloat(price).toFixed(2);
+}
+
+$(document).on('change', '[name="check"],.check', function () {
+   
+    getTotal();
+});
