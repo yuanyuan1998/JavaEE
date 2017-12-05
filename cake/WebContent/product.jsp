@@ -78,14 +78,6 @@
                 function () {
                     $(this).find("dl").removeClass("show_a").addClass("hide_a");
                 })
-            ////个人中心弹出菜单
-            $(".menu_nav").hover(
-                function () {
-                    $(this).find("ul").show();
-                },
-                function () {
-                    $(this).find("ul").hide();
-                })
         });
     </script>    
     <script>
@@ -108,14 +100,6 @@
                     //abc(typeid,index);
                 }
             });
-            //边栏
-            $(".aside").hover(
-                function () {
-                    $(this).find(".kf_box").show();
-                },
-                function () {
-                    $(this).find(".kf_box").hide();
-                })
             //导航置顶
             $(window).scroll(function () {
                 if ($(window).scrollTop() >= 554) {
@@ -146,7 +130,7 @@
 	    $(function () {
 	    	if('${user.name }' != "" ){
 	    		$("a").remove("#b");
-	    		var html = "<a href=' "+'<%=path %>/index.jsp'+" '>"+'${user.name}'+"</a>";
+	    		var html = "<a href=' "+'<%=path %>/person.jsp'+" '>"+'${user.name}'+"</a>";
 	    		document.getElementById('a').innerHTML = html;
 	    	}
 	    });
@@ -204,12 +188,6 @@
     <script src="<%=path %>/js/layer.js.下载"></script>
     <script>
         $(function () {
-            //案例幻灯片
-            //$('.slider_box ul').bxSlider({
-            //    pagerCustom: '#bx-pager',
-            //    controls: false,
-            //    auto: true
-            //});
             //下拉菜单
             $(".menu li").hover(
                 function () {
@@ -220,54 +198,6 @@
                 function () {
                     $(this).find("dl").removeClass("show_a").addClass("hide_a");
                 })
-        function submit() {
-            //alert(123)
-            var checkid = 0;
-            //$("input[type='checked']:checked") == true
-            //document.getElementById("checkboxID").checked
-            //$("input[name=check]:checked").length == 0
-
-            $(".checkboxID:checked").each(function () {
-                checkid++;
-            });
-            //alert(checkid)
-            if (checkid == 0) {
-                layer.open({ content: '请至少选择一个商品!', time: 2, });
-                return false;
-            } else {
-                ImdBuy();
-            }
-        }
-        var modelType = 0;
-        function buy1(id) {
-            var isFirstHide = 0;
-            //秒杀或抽奖
-            if (modelType == 3) {
-                window.location = "/Product/Buy1?mid=" + id;
-            } else {
-                var pid = $(".gga_tt").find(".cur").attr("pid");
-                if (pid == undefined) {
-                    AddPopup("请联系管理员添加产品规格");
-                    popup($(".p_box1"));
-                    return;
-                }
-                window.location = "/Product/Buy1?mid=" + id + "&pid=" + pid + "&num=" + $(".xq_guige input").val();
-            }
-        };
-    </script>
-    <script type="text/javascript">
-        $(document).ready(function () {
-            $(".gga_tt  span").each(function () {
-                $(this).click(function () {
-                    $(".gga_tt  .cur").removeClass("cur");
-                    //取值
-                    $(this).data('name');
-                    //赋值
-                    $(".gga_more").text($(this).data('name'));
-                    $(this).addClass("cur");
-                });
-            });
-        });
     </script>
     <script type="text/javascript">
         $(function () {
@@ -290,7 +220,6 @@
     	var id = ${p.id};
     	var count = $('#count').val();
     	var size =$('#sellPrice').attr("name");
-    	alert(size);
 		$.ajax({
 			async:false,
             type : "post",
@@ -316,11 +245,12 @@
     function buy(){
     	var id = ${p.id};
     	var count = $('#count').val();
+    	var size =$('#sellPrice').attr("name");
 		$.ajax({
 			async:false,
             type : "post",
             url : "<%=path %>/cart/buyProduct?id="+id,
-            data:"count="+count,
+            data:{count:count,size:size},
             success : function(date) {
             	if (date == 1) {
             		 var context = "您暂未登陆，是否登陆？";
@@ -443,26 +373,19 @@
         </div>
     </div>
 </div>
-    
-
-
 <!--侧边栏-->
 <footer class="web_footer">
     <div class="container">
         <div class="ewm">
             <img src="<%=path %>/images/erweima_09.png" width="80" height="80">
             <img src="<%=path %>/images/erweima_11.png" width="80" height="80">
-        </div>
-       
+        </div>       
         <div class="btn_boxa">
             <span><i class="app_size">APP</i></span>
-
         </div>
-
         <div class="footer_bot">
             全国服务热线：400-6340-500 &nbsp;&nbsp;&nbsp;&nbsp;      工作时间：08:30---18:00 &nbsp;&nbsp;&nbsp;&nbsp;            官方微博：http://weibo.com/yudiefang  &nbsp;&nbsp;&nbsp;&nbsp;           网址：http://www.dingdangao.net.cn    &nbsp;&nbsp;&nbsp;&nbsp;         地址：深圳市光明新区新羌社区新陂头村工业区6栋;<br>
             御蝶坊现已成为专业生产中西式糕点食品的大型企业。公司位于深圳市光明新区，拥有50000平方米全封闭的无尘生产车间。公司坚持质量乃企业生命线，生产出具有特色的高质量食品……
-
         </div>
     </div>
 </footer>

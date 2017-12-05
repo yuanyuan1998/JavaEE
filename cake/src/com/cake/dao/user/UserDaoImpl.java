@@ -8,6 +8,7 @@ import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
+import com.cake.entity.user.Address;
 import com.cake.entity.user.User;
 
 @Repository
@@ -43,5 +44,21 @@ public class UserDaoImpl {
 			return lu.get(0);
 		}else
 			return null;
+	}
+	
+	public List<Address> findAddress(int id){
+		String hpl = "from Address where userId = ?";
+		Query query = this.sessionFactory.getCurrentSession().createQuery(hpl);
+		query.setParameter(0, id);
+		List<Address> la = query.list();
+		if(la != null)
+			return la;
+		else
+			return null;
+	}
+	
+	public Address saveAddress(Address address){
+		this.sessionFactory.getCurrentSession().save(address);
+		return address;
 	}
 }

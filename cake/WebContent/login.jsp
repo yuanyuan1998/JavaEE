@@ -79,22 +79,8 @@
                 function () {
                     $(this).find("dl").removeClass("show_a").addClass("hide_a");
                 })
-
-            ////个人中心弹出菜单
-            $(".menu_nav").hover(
-                function () {
-                    $(this).find("ul").show();
-                },
-                function () {
-                    $(this).find("ul").hide();
-                })
         });
     </script>
-    
-    
-
-    
-
     <script>
         $(function () {
             //案例幻灯片
@@ -115,14 +101,6 @@
                     //abc(typeid,index);
                 }
             });
-            //边栏
-            $(".aside").hover(
-                function () {
-                    $(this).find(".kf_box").show();
-                },
-                function () {
-                    $(this).find(".kf_box").hide();
-                })
             //导航置顶
             $(window).scroll(function () {
                 if ($(window).scrollTop() >= 554) {
@@ -135,20 +113,7 @@
                     //$(".xq_side").removeClass("xq_side_zd");
                 }
             });
-            //城市选择
-            $(".city_box .city").click(function () {
-                $(".city_choice").toggle();
-
-            })
-            //城市cur
-            $(".city_choice a").removeClass("cur");
-            $(".city_choice a").each(function () {
-                if ($(this).text() == $(".city").text()) {
-                    $(this).addClass("cur");
-                }
-            })
-
-        });
+     });
     </script>
     <script language="javascript">
         $(function () {
@@ -165,7 +130,7 @@
 	    $(function () {
 	    	if('${user.name }' != "" ){
 	    		$("a").remove("#b");
-	    		var html = "<a href=' "+'<%=path %>/index.jsp'+" '>"+'${user.name}'+"</a>";
+	    		var html = "<a href=' "+'<%=path %>/person.jsp'+" '>"+'${user.name}'+"</a>";
 	    		document.getElementById('a').innerHTML = html;
 	    	}
 	    });
@@ -215,27 +180,14 @@
                     <a href="<%=path%>/regist.jsp" id="b">注册</a>
                 </div>
 </form>        </div>
-    </header>
-    
-
-
-
-    
+    </header>    
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>用户登录</title>
-    
+    <title>用户登录</title>   
     <link href="<%=path %>/css/login.css" rel="stylesheet" rev="stylesheet" type="text/css">
-
-    
-
-    
-
-
     <script>
         $(function () {
             //案例幻灯片
             $("#name").focus().select();
-
             $(".slider_box ul").bxSlider({
                 auto: true,
                 controls: false,
@@ -275,180 +227,13 @@
                     $("header").css("zIndex", "999");
                 };
             });
-            //右侧导航栏hover事件
-            $(document).on("mouseover", ".btncb-1_on", function (event) {
-                $(this).children("div.mouseover1121-box1").css("display", "block");
-            });
-            $(document).on("mouseover", ".btncb-2_on", function (event) {
-                $(this).children("div").css("display", "block");
-                $(this).children("div").animate({ right: "30px" }, 200);
-            });
-            $(document).on("mouseover", ".btncb-3_on", function (event) {
-                $(this).children("div").css("display", "block");
-                $(this).children("div").animate({ right: "30px" }, 200);
-            });
-            $(document).on("mouseover", ".btncb-4_on", function (event) {
-                $(this).children("div").css("display", "block");
-                $(this).children("div").animate({ right: "30px" }, 200);
-            });
-            $(document).on("mouseover", ".btncb-5_on", function (event) {
-                $(this).children("div").css("display", "block");
-                $(this).children("div").animate({ right: "30px" }, 200);
-            });
-            $(document).on("mouseover", ".btncb-6_on", function (event) {
-                $(this).children("div").css("display", "block");
-                $(this).children("div").animate({ right: "30px" }, 200);
-            });
-
-            $(document).on("mouseover", ".btncb-7_on", function (event) {
-                $(this).children("div").css("display", "block");
-                $(this).children("div").animate({ right: "30px" }, 200);
-
-            });
-            $(document).on("mouseover", ".btncb-8_on", function (event) {
-                $(this).children("div").css("display", "block");
-
-            });
-
-            $(document).on("mouseout", ".btncb-1_off", function (event) {
-                $(this).children("div.mouseover1121-box1").css("display", "none");
-            });
-            $(document).on("mouseout", ".btncb-2_off", function (event) {
-                $(this).children("div").css("display", "none");
-                $(this).children("div").css("right", "60px");
-                $(this).children("div").stop();
-            });
-            $(document).on("mouseout", ".btncb-3_off", function (event) {
-                $(this).children("div").css("display", "none");
-                $(this).children("div").css("right", "60px");
-                $(this).children("div").stop();
-            });
-            $(document).on("mouseout", ".btncb-4_off", function (event) {
-                $(this).children("div").css("display", "none");
-                $(this).children("div").css("right", "60px");
-                $(this).children("div").stop();
-            });
-            $(document).on("mouseout", ".btncb-5_off", function (event) {
-                $(this).children("div").css("display", "none");
-                $(this).children("div").css("right", "60px");
-                $(this).children("div").stop();
-            });
-            $(document).on("mouseout", ".btncb-6_off", function (event) {
-                $(this).children("div").css("display", "none");
-                $(this).children("div").css("right", "60px");
-                $(this).children("div").stop();
-            });
-            $(document).on("mouseout", ".btncb-7_off", function (event) {
-                $(this).children("div").css("display", "none");
-                $(this).children("div").css("right", "60px");
-                $(this).children("div").stop();
-            });
-            $(document).on("mouseout", ".btncb-8_off", function (event) {
-                $(this).children("div").css("display", "none");
-            });
-            //返回顶部
-
-            $("#backtofun").click(function () {
-                $('body,html').animate({ scrollTop: 0 }, 1000);
-                return false;
-            });
-            //头部下拉
-
-            $(".la_box").hover(
-                function () {
-                    $(this).find(".title").addClass("cur").find("i").removeClass("fa-angle-down").addClass("fa-angle-up");
-                    $(this).find(".la_box_tc").show();
-                },
-                function () {
-                    $(this).find(".title").removeClass("cur").find("i").removeClass("fa-angle-up").addClass("fa-angle-down");
-                    $(this).find(".la_box_tc").hide();
-                }
-                )
-        })
-        function $w(objStr) { return document.getElementById(objStr); }
-        function Login() {
-            var parim = new Object();
-            var name = $("#name").val().replace(/^\s+|\s+$/g, "")
-            var pwd = $("#pwd").val().replace(/[ ]/g, "");
-            if (name == "" || pwd == "") {
-                $("#msg").text("用户名和密码不能为空");
-                return;
-            }
-            parim["Name"] = name;
-            parim["PassWord"] = pwd;
-            $(".btn_login0").text("登 陆 中...");
-            $.ajax({
-                type: "POST",
-                url: "/Login/Index",
-                data: parim,
-                dataType: "json",
-                success: function (data) {
-                    //cc(data);
-                    if (data.isOK) {
-                        if ($w("saveCookie").checked) {
-
-                            setCookie("name", $w("name").value, 168, "/");
-                            setCookie("pwd", $w("pwd").value, 168, "/");
-                        }
-                        if ($("#link").val() == "")
-                            location.href = "/Index/Index";
-                        else {
-                            //?mid=1123&pid=1133&num=1
-                            //$("#link").val() 从&开始截断了
-                            if (window.location.search.indexOf('&') - 1) {
-                                if (window.location.search.replace("?link=", "") == "http://localhost:5800/" || window.location.search.replace("?link=", "") == "http://120.76.153.103:8006/") {
-
-                                    location.href = "/Index/Index";
-                                } else {
-                                    location.href = window.location.search.replace("?link=", "");
-                                }
-
-                            } else {
-
-                                location.href = $("#link").val();
-                            }
-                        }
-                    } else {
-                        if ("密码不正确" == data.message) {
-                            $("#msg").text("密码不正确");
-                        }
-                        else {
-                            $("#msg").text(data.message);
-                        }
-                        $(".btn_login0").text("登 陆");
-                        //CodeChange();
-                    }
-                },
-                error: function (err) { }
-            });
-        };
-        $(document).ready(function () {
-            document.onkeydown = function (e) {
-                var ev = document.all ? window.event : e;
-                if (ev.keyCode == 13) {
-                    var target = ev.target || ev.srcElement; // 获得事件源
-                    //target.type =="text"
-                    if (target.tagName == "INPUT") {
-                        Login();
-                    }
-                }
-            }
         });
-        function gohome() {
-            window.location.href = "/";
-        }
     </script>
-
-
-    
-   
-
     <div class="container login_mid">
         <input type="hidden" id="link" value="http://www.dingdangao.net.cn/Login/Register">
         <div class="pull-left" style="background: url(<%=path %>/images/banner1_03.jpg) center center no-repeat; background-size: 100%; width: 50%;"></div>
         <div class="pull-right" style="width:50%;">
-            <div class="login_box" >
-                
+            <div class="login_box" >             
                 <h1>登录</h1>
                 <div style="margin-top:20px;">
                     <form action="<%=path %>/user/login" method="post">
@@ -478,34 +263,22 @@
         </div>
         <div class="clearfix"></div>
     </div>
-    
-    
-
-
-
-
-
 <!--侧边栏-->
 <footer class="web_footer">
     <div class="container">
         <div class="ewm">
             <img src="<%=path %>/images/erweima_09.png" width="80" height="80">
             <img src="<%=path %>/images/erweima_11.png" width="80" height="80">
-        </div>
-        
+        </div>        
         <div class="btn_boxa">
             <span><i class="app_size">APP</i></span>
-
         </div>
-
         <div class="footer_bot">
             全国服务热线：400-6340-500 &nbsp;&nbsp;&nbsp;&nbsp;      工作时间：08:30---18:00 &nbsp;&nbsp;&nbsp;&nbsp;            官方微博：http://weibo.com/yudiefang  &nbsp;&nbsp;&nbsp;&nbsp;           网址：http://www.dingdangao.net.cn    &nbsp;&nbsp;&nbsp;&nbsp;         地址：深圳市光明新区新羌社区新陂头村工业区6栋;<br>
             御蝶坊现已成为专业生产中西式糕点食品的大型企业。公司位于深圳市光明新区，拥有50000平方米全封闭的无尘生产车间。公司坚持质量乃企业生命线，生产出具有特色的高质量食品……
-
         </div>
     </div>
 </footer>
-
     <script>
         var _hmt = _hmt || [];
         (function () {
@@ -515,6 +288,4 @@
             s.parentNode.insertBefore(hm, s);
         })();
     </script>
-
-
 </body></html>

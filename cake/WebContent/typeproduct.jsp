@@ -161,7 +161,7 @@
 	    $(function () {
 	    	if('${user.name }' != "" ){
 	    		$("a").remove("#b");
-	    		var html = "<a href=' "+'<%=path %>/index.jsp'+" '>"+'${user.name}'+"</a>";
+	    		var html = "<a href=' "+'<%=path %>/person.jsp'+" '>"+'${user.name}'+"</a>";
 	    		document.getElementById('a').innerHTML = html;
 	    	}
 	    });

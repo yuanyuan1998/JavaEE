@@ -21,8 +21,9 @@ public class CartServlet {
 		if(c == null){
 			c = new Cart();
 		}
-		c.addCart(p,count,size);
+		c.addCart(p,count,size,session);
 		session.setAttribute("cart", c);
 		return c;
 	}
+	
 }

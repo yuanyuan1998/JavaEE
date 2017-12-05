@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cake.dao.product.ProductDaoImpl;
 import com.cake.dao.user.UserDaoImpl;
 import com.cake.entity.product.Product;
+import com.cake.entity.user.Address;
 import com.cake.entity.user.User;
 
 @Service
@@ -40,5 +41,23 @@ public class UserServiceImpl {
 			return u1;
 		}else
 			return null;
+	}
+	
+	public List<Address> findAddress(int id){
+		List<Address> la = this.userDaoImpl.findAddress(id);
+		if(la != null)
+			return la;
+		else
+			return null;
+	}
+	
+	public Address addAddress(Address address){
+		List<Address> la = this.userDaoImpl.findAddress(address.getUserId());
+		for(Address a:la){
+			if(a.getName().equals(address.getName()) && a.getPhoneNum().equals(address.getPhoneNum()) && a.getAddress().equals(address.getAddress())){
+				return null;
+			}
+		}
+		return  this.userDaoImpl.saveAddress(address);
 	}
 }

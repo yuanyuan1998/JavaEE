@@ -75,22 +75,8 @@
                 function () {
                     $(this).find("dl").removeClass("show_a").addClass("hide_a");
                 })
-
-            ////个人中心弹出菜单
-            $(".menu_nav").hover(
-                function () {
-                    $(this).find("ul").show();
-                },
-                function () {
-                    $(this).find("ul").hide();
-                })
         });
     </script>
-    
-    
-
-    
-
     <script>
         $(function () {
             //案例幻灯片
@@ -111,14 +97,6 @@
                     //abc(typeid,index);
                 }
             });
-            //边栏
-            $(".aside").hover(
-                function () {
-                    $(this).find(".kf_box").show();
-                },
-                function () {
-                    $(this).find(".kf_box").hide();
-                })
             //导航置顶
             $(window).scroll(function () {
                 if ($(window).scrollTop() >= 554) {
@@ -131,19 +109,6 @@
                     //$(".xq_side").removeClass("xq_side_zd");
                 }
             });
-            //城市选择
-            $(".city_box .city").click(function () {
-                $(".city_choice").toggle();
-
-            })
-            //城市cur
-            $(".city_choice a").removeClass("cur");
-            $(".city_choice a").each(function () {
-                if ($(this).text() == $(".city").text()) {
-                    $(this).addClass("cur");
-                }
-            })
-
         });
     </script>
     <script language="javascript">
@@ -161,7 +126,7 @@
 	    $(function () {
 	    	if('${user.name }' != "" ){
 	    		$("a").remove("#b");
-	    		var html = "<a href=' "+'<%=path %>/index.jsp'+" '>"+'${user.name}'+"</a>";
+	    		var html = "<a href=' "+'<%=path %>/person.jsp'+" '>"+'${user.name}'+"</a>";
 	    		document.getElementById('a').innerHTML = html;
 	    	}
 	    });
@@ -172,27 +137,19 @@
     }</style>
 </head>
 <body class="bg3">
-
     <header class="sj_header">
         <div class="row">
             <div class="col-xs-3"><span class="logo_sj"><a href="http://www.dingdangao.net.cn/Product/List#"><img src="<%=path %>/images/alogo7_03.png"></a></span></div>
             <div class="col-xs-9 text-right">
                 <a class="yuyue_sj pull-right" href="http://www.dingdangao.net.cn/Product/List#">在线预约</a>
             </div>
-
         </div>
-
     </header>
-
     <header class="web_header">
         <div class="container colxs">
-
-
             <div class="pull-left logo"><a href="<%=path %>/index.jsp"><img src="<%=path %>/images/alogo7_03.png" width="181" height="39"></a></div>
 <form action="http://www.dingdangao.net.cn/Product/List1" id="list_form_type" method="post">                <input type="hidden" name="typeid" id="typeid">
-                <ul class="menu">
-
-                    
+                <ul class="menu">                   
                     <li class=""> <a href="<%=path %>/index.jsp">首页</a></li>
                     <li class="cur"><a href="<%=path %>/product/allProduct">所有产品</a></li>
                     <li class="cur"><a href="http://www.dingdangao.net.cn/Product/List">热门产品</a></li>
@@ -216,13 +173,11 @@
     </header>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>商品列表页</title>
-    
+    <title>商品列表页</title>    
     <script src="<%=path %>/js/myScroll.js.下载" type="text/javascript"></script>
     <script src="<%=path %>/js/Detail.js.下载"></script>
     <script src="<%=path %>/js/product.js.下载"></script>
     <script src="<%=path %>/js/buy1.js.下载"></script>
-
     <script>
         $(function () {
             //案例幻灯片
@@ -251,14 +206,6 @@
                 },
                 function () {
                     $(this).find("dl").removeClass("show_a").addClass("hide_a");
-                })
-            ////个人中心弹出菜单
-            $(".menu_nav").hover(
-                function () {
-                    $(this).find("ul").show();
-                },
-                function () {
-                    $(this).find("ul").hide();
                 })
         });
     </script>
@@ -322,8 +269,7 @@
         <div class="ewm">
             <img src="<%=path %>/images/erweima_09.png" width="80" height="80">
             <img src="<%=path %>/images/erweima_11.png" width="80" height="80">
-        </div>
-       
+        </div>       
         <div class="btn_boxa">
             <span><i class="app_size">APP</i></span>
         </div>

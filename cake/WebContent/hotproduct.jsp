@@ -74,15 +74,6 @@
                 function () {
                     $(this).find("dl").removeClass("show_a").addClass("hide_a");
                 })
-
-            ////个人中心弹出菜单
-            $(".menu_nav").hover(
-                function () {
-                    $(this).find("ul").show();
-                },
-                function () {
-                    $(this).find("ul").hide();
-                })
         });
     </script>
     
@@ -110,14 +101,7 @@
                     //abc(typeid,index);
                 }
             });
-            //边栏
-            $(".aside").hover(
-                function () {
-                    $(this).find(".kf_box").show();
-                },
-                function () {
-                    $(this).find(".kf_box").hide();
-                })
+           
             //导航置顶
             $(window).scroll(function () {
                 if ($(window).scrollTop() >= 554) {
@@ -130,18 +114,7 @@
                     //$(".xq_side").removeClass("xq_side_zd");
                 }
             });
-            //城市选择
-            $(".city_box .city").click(function () {
-                $(".city_choice").toggle();
-
-            })
-            //城市cur
-            $(".city_choice a").removeClass("cur");
-            $(".city_choice a").each(function () {
-                if ($(this).text() == $(".city").text()) {
-                    $(this).addClass("cur");
-                }
-            })
+            
 
         });
     </script>
@@ -160,7 +133,7 @@
 	    $(function () {
 	    	if('${user.name }' != "" ){
 	    		$("a").remove("#b");
-	    		var html = "<a href=' "+'<%=path %>/index.jsp'+" '>"+'${user.name}'+"</a>";
+	    		var html = "<a href=' "+'<%=path %>/person.jsp'+" '>"+'${user.name}'+"</a>";
 	    		document.getElementById('a').innerHTML = html;
 	    	}
 	    });
@@ -255,14 +228,7 @@
                 function () {
                     $(this).find("dl").removeClass("show_a").addClass("hide_a");
                 })
-            ////个人中心弹出菜单
-            $(".menu_nav").hover(
-                function () {
-                    $(this).find("ul").show();
-                },
-                function () {
-                    $(this).find("ul").hide();
-                })
+           
         });
     </script>
     <script>
