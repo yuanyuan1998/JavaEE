@@ -13,23 +13,41 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.cake.entity.cart.Cart;
 import com.cake.entity.cart.CartItem;
-import com.cake.entity.product.Product;
 import com.cake.entity.user.User;
-import com.cake.service.cart.CartServlet;
-import com.cake.service.product.ProductServiceImpl;
-import com.cake.service.product.ProductSizeServiceImpl;
+import com.cake.service.cart.CartService;
 
 @Controller
 @RequestMapping("/cart")
 public class CartController {
 	@Resource
-	private CartServlet cartServlet;
+	private CartService cartServlet;
+	
+	@RequestMapping("/productCart")
+	public String productCart(HttpSession session,HttpServletRequest request){
+		User u = (User) session.getAttribute("user");
+		List<Cart> cartlist = new ArrayList<Cart>();
+		if(u == null){
+			cartlist = null;
+		}else{
+			cartlist = this.cartServlet.findByUserId(u.getId());
+		}
+		int countNum = 0;
+		if(cartlist != null){
+			if(cartlist.size() == 0){
+				countNum = 0;
+			}else{
+				countNum =  cartlist.get(0).getCountNum();
+			}
+		}
+		session.setAttribute("countNum", countNum);
+		session.setAttribute("cartlist", cartlist);
+		return "cart";
+	}
 	
 	@RequestMapping("/addProduct")
 	public void addProduct(@RequestParam("id") int id,@RequestParam("count") int count,@RequestParam("size") String size,HttpSession session,HttpServletResponse response) throws IOException{
@@ -39,18 +57,19 @@ public class CartController {
 		if(user == null){
 			out.print(1);
 		}else{
-			Integer size1 = Integer.parseInt(size.trim()); 
-			Cart c = this.cartServlet.addProduct(id,count,size1,session);
-			Iterator i = c.Cart.values().iterator();
-			List<CartItem> cartlist = new ArrayList<CartItem>();
-			while(i.hasNext()){
-				CartItem ci=(CartItem)i.next();
-				cartlist.add(ci);
-			}	
-			countNum += count;
-			session.setAttribute("cartlist",cartlist);
+			List<Cart> cartlist1 = this.cartServlet.findByUserId(user.getId());
+			Cart c1 = this.cartServlet.findByProductIdSize(id, Integer.parseInt(size));
+			if(c1 != null){
+				this.cartServlet.addCount(id, Integer.parseInt(size), count);
+			}else{
+				Cart c = new Cart();
+				c.setProductId(id);
+				c.setSize(Integer.parseInt(size));
+				c.setCount(count);
+				c.setUserId(user.getId());
+				this.cartServlet.save(c);
+			}
 		}
-		session.setAttribute("countNum", countNum);
 	}
 	
 	@RequestMapping("/buyProduct")
@@ -61,70 +80,41 @@ public class CartController {
 		if(user == null){
 			out.print(1);
 		}else{
-			Integer size1 = Integer.parseInt(size.trim()); 
-			Cart c = this.cartServlet.addProduct(id,count,size1,session);
-			Iterator i = c.Cart.values().iterator();
-			List<CartItem> cartlist = new ArrayList<CartItem>();
-			while(i.hasNext()){
-				CartItem ci=(CartItem)i.next();
-				cartlist.add(ci);
-			}	
-			countNum += count;
-			session.setAttribute("cartlist",cartlist);
+			List<Cart> cartlist1 = this.cartServlet.findByUserId(user.getId());
+			Cart c1 = this.cartServlet.findByProductIdSize(id, Integer.parseInt(size));
+			if(c1 != null){
+				this.cartServlet.addCount(id, Integer.parseInt(size), count);
+			}else{
+				Cart c = new Cart();
+				c.setProductId(id);
+				c.setSize(Integer.parseInt(size));
+				c.setCount(count);
+				c.setUserId(user.getId());
+				this.cartServlet.save(c);
+			}
 			out.print(2);
 		}
-		session.setAttribute("countNum", countNum);
 	}
 	
 	@RequestMapping("/deleteProduct")
-	public void deleteProduct(@RequestParam("id") int id,@RequestParam("size") int size,@RequestParam("count") int count,HttpSession session){
-		Map<Integer,CartItem> C = (Map<Integer, CartItem>) session.getAttribute("Cart");
-		C.remove(id*10+size);
-		Iterator i = C.values().iterator();
-		List<CartItem> cartlist = new ArrayList<CartItem>();
-		while(i.hasNext()){
-			CartItem ci=(CartItem)i.next();
-			cartlist.add(ci);
-		}	
-		int countNum = (int) session.getAttribute("countNum");
-		countNum -= count;
-		session.setAttribute("countNum", countNum);
-		session.setAttribute("Cart", C);
-		session.setAttribute("cartlist", cartlist);
+	public String deleteProduct(@RequestParam("id") int id,@RequestParam("size") int size,@RequestParam("count") int count,HttpSession session){
+		this.cartServlet.delete(id, size);
+		return "redirect:/cart/productCart";
 	}
 	
 	@RequestMapping("/jianCount")
-	public void jianCount(@RequestParam("id") int id,@RequestParam("size") int size,@RequestParam("count") int count,HttpSession session){
-		Map<Integer,CartItem> C = (Map<Integer, CartItem>) session.getAttribute("Cart");
-		if(count > 1)
-			C.get(id*10+size).setCount(count-1);
-		Iterator i = C.values().iterator();
-		List<CartItem> cartlist = new ArrayList<CartItem>();
-		while(i.hasNext()){
-			CartItem ci=(CartItem)i.next();
-			cartlist.add(ci);
-		}	
-		session.setAttribute("Cart", C);
-		int countNum = (int) session.getAttribute("countNum");
-		countNum --;
-		session.setAttribute("countNum", countNum);
-		session.setAttribute("cartlist", cartlist);
+	public String jianCount(@RequestParam("id") int id,@RequestParam("size") int size,@RequestParam("count") int count,HttpSession session){
+		Cart c = this.cartServlet.findByProductIdSize(id, size);
+		if(c.getCount() > 1){
+			this.cartServlet.jianCount(id, size);
+		}
+		return "redirect:/cart/productCart";
 	}
 	
 	@RequestMapping("/addCount")
-	public void addCount(@RequestParam("id") int id,@RequestParam("size") int size,@RequestParam("count") int count,HttpSession session){
-		Map<Integer,CartItem> C = (Map<Integer, CartItem>) session.getAttribute("Cart");
-		C.get(id*10+size).setCount(count+1);
-		Iterator i = C.values().iterator();
-		List<CartItem> cartlist = new ArrayList<CartItem>();
-		while(i.hasNext()){
-			CartItem ci=(CartItem)i.next();
-			cartlist.add(ci);
-		}
-		session.setAttribute("Cart", C);
-		int countNum = (int) session.getAttribute("countNum");
-		countNum ++;
-		session.setAttribute("countNum", countNum);
-		session.setAttribute("cartlist", cartlist);
+	public String addCount(@RequestParam("id") int id,@RequestParam("size") int size,@RequestParam("count") int count,HttpSession session){
+		this.cartServlet.addCount(id, size, count);
+		return "redirect:/cart/productCart";
 	}
+	
 }

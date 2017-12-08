@@ -25,7 +25,6 @@
     <script src="<%=path %>/js/holder.min.js.下载" type="text/javascript"></script>
     <script src="<%=path %>/js/jquery.easing.1.3.min.js.下载" type="text/javascript"></script>
     <script src="<%=path %>/js/jquery.bxslider.min.js.下载" type="text/javascript"></script>
-    
     <script src="<%=path %>/js/region.js.下载" type="text/javascript"></script>
     <script src="<%=path %>/js/product.js.下载"></script>
     <script>
@@ -84,9 +83,6 @@
                 event: "mouseover",
                 activate: function (event, ui) {
                     $(".mu_tips h2").text($('.ui-tabs-active i').text());
-                    //var typeid = $('.ui-tabs-active i').attr("typeid")
-                    //var index = $('.ui-tabs-active').index()+1;
-                    //abc(typeid,index);
                 }
             });
             //导航置顶
@@ -107,6 +103,10 @@
             		var html = "<a href=' "+'<%=path %>/order/unpaid'+" '>"+'${user.name}'+"</a>";
             		document.getElementById('a').innerHTML = html;
             	}
+            	$.ajax({
+                    type : "post",
+                    url : "<%=path %>/user/address"
+        		});
             });
         });
     </script>
@@ -118,8 +118,6 @@
                 });
             }
         });
-        var UserId = "37740";
-        var DomainPlaceId = "233";
     </script>
 <style>
     .sj_header {
@@ -196,14 +194,6 @@
             function () {
                 $(this).find("dl").removeClass("show_a").addClass("hide_a");
             })
-        ////个人中心弹出菜单
-        $(".menu_nav").hover(
-            function () {
-                $(this).find("ul").show();
-            },
-            function () {
-                $(this).find("ul").hide();
-            })
     });
 </script>
 <div class="wd">
@@ -214,7 +204,6 @@
 <link href="<%=path %>/css/style2.css" rel="stylesheet" rev="stylesheet" type="text/css">
 <link href="<%=path %>/css/style2017.css" rel="stylesheet" rev="stylesheet" type="text/css">
 <script src="<%=path %>/js/product.js.下载"></script>
-
 <link href="<%=path %>/css/sign.css" rel="stylesheet">
 <script src="<%=path %>/js/calendar.js.下载"></script>
 <script src="<%=path %>/js/layer.js.下载"></script>
@@ -263,14 +252,14 @@
 </script>
 <div class="pull-left me_side">
     <div class="me_style">
-            <a class="tx"  href="" style="background-image:url(<%=path %>/images/toux.jpg);"></a>
+            <a class="tx" title="点击更换头像" href="" style="background-image:url(<%=path %>/images/toux.jpg);"></a>
         <h3>${user.name }</h3>
     <div class="clearfix"></div>
 </a>
         <h2 class="order_title">我的订单</h2>
         <ul class="mes_list">
             <li class="cur">
-                <a href="javascript:void(0);" onclick="unpaid()">
+                <a href="<%=path %>/order/unpaid" onclick="unpaid()">
                     <span class="fa fa-reply-all"></span>待付款订单
                 </a>
             </li>
@@ -297,47 +286,100 @@
             }
         });
     })
+    function addAddress(){
+    	$("#Address").toggle();
+    };
+    function reviceAddress(){
+    	$("#reviceAddress").toggle();
+    };
 </script>
 	<div>
 		<div class="pull-right me_cont"  id="unpaid" >
-            <h2 style="font-size:20px; font-weight:500; margin-top:0; border-bottom:#ddd solid 1px; line-height:40px;">待付款订单</h2>
+            <h2 style="font-size:20px; font-weight:500; margin-top:0; border-bottom:#ddd solid 1px; line-height:40px;">收货地址</h2>
             <table class="me_tabl_list" width="0" border="0" cellspacing="0" cellpadding="0">
-                <tbody><tr>
-                    <th width="350" align="left" scope="col">商品</th>
-                    <th width="137" align="center" scope="col">单价</th>
-                    <th width="137" align="center" scope="col">数量</th>
-                    <th width="139" align="center" scope="col">小计</th>
-                    <th align="center" scope="col">状态</th>
-                    <th align="center" scope="col">操作</th>
-                </tr>
-            </tbody>
-            <c:forEach items="${uppl }" var="u" >
-        		<tr indexpid="11" id="li1-11" >
-                    <td valign="middle" align="left"><a href="javascript:void(0);"><img width="48" height="48" src="${u.productImg }" class="d_pic"></a><span class="d_title">${u.productName }<br> <i>约${u.size }磅</i></span></td>
-                    <td valign="middle" iscookie="0" show="188.00" mid="11" pid="1004" align="center">
-                        ￥<span>${u.productPrice }.00</span>
-                    </td>
-                    <td valign="middle">
-                    	<span class="dd_num2" style="display:none;">${u.count }</span>
-                    	<span class="dd_num">
-                    		<a href="<%=path %>/order/jianCount?id=${u.productId}&size=${u.size}&count=${u.count}">-</a>
-                    		<input name="" type="text" value="${u.count }">
-                    		<a href="<%=path %>/order/addCount?id=${u.productId}&size=${u.size}&count=${u.count}">+</a>
-                    	</span>
-                    </td>
-                    <td class="xj" valign="middle" align="center">${u.productPrice*u.count}</td>
-                    <td mid="11" align="center">待付款</td>
-                    <td mid="11" align="center">
-                    	<a href="<%=path %>/order/delete?id=${u.productId}&size=${u.size}">取消</a>
-                    	<a href="<%=path %>/order/buy?id=${u.productId}&size=${u.size}">购买</a>
-                    </td>
-                </tr>
-        	</c:forEach>
+                <tbody>
+	                <tr>
+	                    <th width="" align="left" scope="col">收货人</th>
+	                    <th width="" align="center" scope="col">收货电话</th>
+	                    <th width="" align="center" scope="col">收货地址</th>
+	                    <th align="center" scope="col">操作</th>
+	                </tr>
+            	</tbody>
+	            <c:forEach items="${la }" var="la" >
+	        		<tr indexpid="11" id="li1-11" >
+	                    <td mid="11" align="center">${la.name }</td>
+	                    <td mid="11" align="center">${la.phoneNum }</td>
+	                    <td mid="11" align="center">${la.address }</td>
+	                    <td mid="11" align="center">
+	                    	<a href="javascript:void(0);" onclick="reviceAddress()">修改</a>
+	                    	<a href="<%=path %>/address/userDelete?id=${la.id}">删除</a>
+	                    </td>
+	                </tr>
+	        	</c:forEach>
             </table>
+            <div class="shsm" >
+            <div style="margin-top: 20px;" id="userAddress"><div class="spacer"></div></div>
+            <div>
+                <a class="icon_area_add" href="javascript:void(0);" onclick="addAddress()">+新增地址</a>
+                <input type="hidden" id="addIsDefault" value="0">
+                <div class="join_cont" >
+                    <div class="fanke" style="display:none" id="Address">
+                    	<form action="<%=path %>/address/userAdd" method="post">
+                    		<p></p>
+                    		下单人姓名：<input type="text" name="name" ><br>
+                    		<p></p>
+	                        下单人手机：<input type="text" name="phoneNum" ><br>
+	                        <p></p>
+	                        地&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp址：<input type="text" name="address" ><br>
+	                        <input type="submit" value="确定" /> 
+                    	</form>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 20px;" id="userAddress"><div class="spacer"></div></div>
+            <div>
+                <a class="icon_area_add" href="javascript:void(0);" onclick="reviceAddress()">+修改地址</a>
+                <input type="hidden" id="addIsDefault" value="0">
+                <div class="join_cont" >
+                    <div class="fanke" style="display:none" id="reviceAddress">
+                    	<form action="" method="post">
+                    		<select id="dizhi">
+				        		<c:forEach items="${la }" var="a">
+				        			<option value="${a.id }"> ${a.name } ${a.phoneNum } ${a.address}</option>
+				        		</c:forEach>
+				        	</select>
+                    		<p></p>
+                    		下单人姓名：<input type="text" name="name" id="name"><br>
+                    		<p></p>
+	                        下单人手机：<input type="text" name="phoneNum"  id="phoneNum"><br>
+	                        <p></p>
+	                        地&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp址：<input type="text" name="address"  id="address" ><br>
+	                        <a onclick="queding()" href="javascript:">确定</a>
+                    	</form>
+                    </div>
+                </div>
+                <br>
+            </div>
+        </div>
         </div>
         <div class="spacer"></div>
 	</div>
 <script>
+	function queding(){
+		var name = $("#name").val();  
+		var phone = $("#phoneNum").val(); 
+		var address = $("#address").val(); 
+	    var options=$("#dizhi option:selected");  //获取选中的项
+	    var addressId = options.val();
+	    $.ajax({
+	    	async:false,
+            type : "post",
+            datatype:"json",
+            url : "<%=path %>/address/reviceAddress",
+            data:{addressId:addressId,name:name,phone:phone,address:address},
+        });
+	    location.reload();
+	}
     $(function () {
         $("#buy2").hide();
         $("#buy3").hide();

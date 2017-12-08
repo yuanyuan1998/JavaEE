@@ -35,4 +35,11 @@ public class ProductDaoImpl {
 		query.setParameter(0,typeId);
 		return query.list();
 	}
+	
+	public List<Product> findHot(String hot){
+		String hql = "from Product where hot like ?";
+		Query query=(Query) this.sessionFactory.getCurrentSession().createQuery(hql);
+		query.setParameter(0,hot);
+		return query.list();
+	}
 }

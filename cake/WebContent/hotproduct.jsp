@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%  
 	String path = request.getContextPath();  
 	String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";  
@@ -74,6 +75,15 @@
                 function () {
                     $(this).find("dl").removeClass("show_a").addClass("hide_a");
                 })
+
+            ////个人中心弹出菜单
+            $(".menu_nav").hover(
+                function () {
+                    $(this).find("ul").show();
+                },
+                function () {
+                    $(this).find("ul").hide();
+                })
         });
     </script>
     
@@ -101,7 +111,14 @@
                     //abc(typeid,index);
                 }
             });
-           
+            //边栏
+            $(".aside").hover(
+                function () {
+                    $(this).find(".kf_box").show();
+                },
+                function () {
+                    $(this).find(".kf_box").hide();
+                })
             //导航置顶
             $(window).scroll(function () {
                 if ($(window).scrollTop() >= 554) {
@@ -114,7 +131,18 @@
                     //$(".xq_side").removeClass("xq_side_zd");
                 }
             });
-            
+            //城市选择
+            $(".city_box .city").click(function () {
+                $(".city_choice").toggle();
+
+            })
+            //城市cur
+            $(".city_choice a").removeClass("cur");
+            $(".city_choice a").each(function () {
+                if ($(this).text() == $(".city").text()) {
+                    $(this).addClass("cur");
+                }
+            })
 
         });
     </script>
@@ -133,7 +161,7 @@
 	    $(function () {
 	    	if('${user.name }' != "" ){
 	    		$("a").remove("#b");
-	    		var html = "<a href=' "+'<%=path %>/person.jsp'+" '>"+'${user.name}'+"</a>";
+	    		var html = "<a href=' "+'<%=path %>/order/unpaid'+" '>"+'${user.name}'+"</a>";
 	    		document.getElementById('a').innerHTML = html;
 	    	}
 	    });
@@ -160,36 +188,32 @@
         <div class="container colxs">
 
 
-            <div class="pull-left logo"><a href="http://www.dingdangao.net.cn/Index/Index"><img src="<%=path %>/images/alogo7_03.png" width="181" height="39"></a></div>
+            <div class="pull-left logo"><a href="<%=path %>/index.jsp"><img src="<%=path %>/images/alogo7_03.png" width="181" height="39"></a></div>
 <form action="http://www.dingdangao.net.cn/Product/List1" id="list_form_type" method="post">                <input type="hidden" name="typeid" id="typeid">
                 <ul class="menu">
-                    <li class=""> <a href="http://www.dingdangao.net.cn/Index/Index">首页</a></li>
-                    <li class="cur"> <a href="http://www.dingdangao.net.cn/Product/List">推荐产品</a></li>
-                     <li class="">
-                        <a href="http://www.dingdangao.net.cn/Product/List1">蛋糕</a>
+
+                    
+                    <li class=""> <a href="<%=path %>/index.jsp">首页</a></li>
+                    <li class="cur"><a href="<%=path %>/product/allProduct">所有产品</a></li>
+                    <li class=""> <a href="<%=path %>/product/hot?hot=1">热门产品</a></li>
+                    <li class="">
+                        <a href="<%=path %>/product/type?typeid=1">蛋糕</a>
                         <dl class="hide_a">
-                                <dd><a href="http://www.dingdangao.net.cn/Product/List1/31">蛋糕</a></dd>
-                                <dd><a href="http://www.dingdangao.net.cn/Product/List1/40">新品蛋糕</a></dd>
+                                <dd><a href="<%=path %>/product/type?typeid=1">蛋糕</a></dd>
+                                <dd><a href="<%=path %>/product/LastedProduct">新品蛋糕</a></dd>
                         </dl>
                     </li>
-                    <li class=""><a href="http://www.dingdangao.net.cn/Product/List1/32">下午茶</a></li>
-                    <li class=""><a href="http://www.dingdangao.net.cn/Product/List1/33">伴手礼</a></li>
-                    <li class=""> <a href="http://www.dingdangao.net.cn/Booking/Index">团购预约</a></li>
+                    <li class=""><a href="<%=path %>/product/type?typeid=2">下午茶</a></li>
+                    <li class=""><a href="<%=path %>/product/type?typeid=3">伴手礼</a></li>
                 </ul>
                 <div class=" pull-right menu_right">
                     <span class="co_g3 menu_nav">电话：400-6340-500</span>
-                    <a href="<%=path %>/cart.jsp" class="co_g3 menu_nav">${countNum }  件</a>
+                    <a href="<%=path %>/cart/productCart?userId=${user.id}" class="co_g3 menu_nav">我的购物车</a>
                         <a href="<%=path %>/login.jsp" onclick="loginMember()" id="a"><i class="co_g3"></i>登录</a>
                         <a href="<%=path%>/regist.jsp" id="b">注册</a>
                 </div>
 </form>        </div>
     </header>
-    
-
-
-
-
-    
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>商品列表页</title>
@@ -228,7 +252,14 @@
                 function () {
                     $(this).find("dl").removeClass("show_a").addClass("hide_a");
                 })
-           
+            ////个人中心弹出菜单
+            $(".menu_nav").hover(
+                function () {
+                    $(this).find("ul").show();
+                },
+                function () {
+                    $(this).find("ul").hide();
+                })
         });
     </script>
     <script>
@@ -262,130 +293,29 @@
                 })
         });
     </script>
-
-
+    
     <div class="container pro_a">
         <div class="row">
-                    <div class="lista col-lg-3">
-                        <a class="list_pica" href="http://www.dingdangao.net.cn/Product/Show/9">
-                            <img src="<%=path %>/images/ps_1709261426373757779.jpg">
+        	<c:forEach items="${h }" var="tpl">
+        		<div class="lista col-lg-3">
+                        <a class="list_pica" href="<%=path %>/product/Product?id=${tpl.id }">
+                            <img src="${tpl.img1 }">
                         </a>
                         <div class="lista_text">
                             <div class="list_bt0">
                                 <i class="icon_cu"><img src="<%=path %>/images/tag_new_38.png" width="39" height="16"></i>
-                                <a class="bta" href="http://www.dingdangao.net.cn/Product/Show"><h2>无限魅力</h2></a>
-                                
-                                <span>￥ 128.00</span>
+                                <a class="bta" href="<%=path %>/product/Product?id=${tpl.id }"><h2>${tpl.name }</h2></a>
+                                <span>￥ ${tpl.price }</span>
                             </div>
                             <div class="list_bt1">
-                                <span>￥ 128.00</span>
-                                <small class="">这是一个神奇的国度，里面住满了可爱迷人的水果，它们在唱歌，它们在跳舞，它们欢笑着在呼唤你快点来。
-</small>
-                                <ins><a class="btn_buya" href="http://www.dingdangao.net.cn/Product/Show/9">立即购买</a></ins>
-                                
+                                <span>￥ ${tpl.price }</span>
+                                <small class="">${tpl.description }</small>
+                                <ins><a class="btn_buya" href="<%=path %>/product/Product?id=${tpl.id }">立即购买</a></ins>                         
                             </div>
                         </div>
                     </div>
-                    <div class="lista col-lg-3">
-                        <a class="list_pica" href="http://www.dingdangao.net.cn/Product/Show/10">
-                            <img src="<%=path %>/images/ps_1709261427489937623.jpg">
-                        </a>
-                        <div class="lista_text">
-                            <div class="list_bt0">
-                                <i class="icon_cu"><img src="<%=path %>/images/tag_new_38.png" width="39" height="16"></i>
-                                <a class="bta" href="http://www.dingdangao.net.cn/Product/Show"><h2>夏日抹茶</h2></a>
-                                
-                                <span>￥ 138.00</span>
-                            </div>
-                            <div class="list_bt1">
-                                <span>￥ 138.00</span>
-                                <small class="">还记得那个下午在转角的咖啡厅遇见你，你天然清新，独有的抹茶香味沁人心脾，久久不散。
-</small>
-                                <ins><a class="btn_buya" href="http://www.dingdangao.net.cn/Product/Show/10">立即购买</a></ins>
-                                
-                            </div>
-                        </div>
-                    </div>
-                    <div class="lista col-lg-3">
-                        <a class="list_pica" href="http://www.dingdangao.net.cn/Product/Show/11">
-                            <img src="<%=path %>/images/ps_1709261429019301567.jpg">
-                        </a>
-                        <div class="lista_text">
-                            <div class="list_bt0">
-                                <i class="icon_cu"><img src="<%=path %>/images/tag_new_38.png" width="39" height="16"></i>
-                                <a class="bta" href="http://www.dingdangao.net.cn/Product/Show"><h2>梦幻天使</h2></a>
-                                
-                                <span>￥ 138.00</span>
-                            </div>
-                            <div class="list_bt1">
-                                <span>￥ 138.00</span>
-                                <small class="">酸奶遇上新鲜水果，香滑爽口滑过舌尖，我想那就是遇见天使的感觉。
-</small>
-                                <ins><a class="btn_buya" href="http://www.dingdangao.net.cn/Product/Show/11">立即购买</a></ins>
-                                
-                            </div>
-                        </div>
-                    </div>
-                    <div class="lista col-lg-3">
-                        <a class="list_pica" href="http://www.dingdangao.net.cn/Product/Show/12">
-                            <img src="<%=path %>/images/ps_1710241356355830060.jpg">
-                        </a>
-                        <div class="lista_text">
-                            <div class="list_bt0">
-                                <i class="icon_cu"><img src="<%=path %>/images/tag_new_38.png" width="39" height="16"></i>
-                                <a class="bta" href="http://www.dingdangao.net.cn/Product/Show"><h2>我爱榴芒</h2></a>
-                                
-                                <span>￥ 138.00</span>
-                            </div>
-                            <div class="list_bt1">
-                                <span>￥ 138.00</span>
-                                <small class="">"我热情似火，你冰霜如雪
-你洁白如花，是我喜爱的那一地雪花
-我想肯定是命运让我们一起
-我温暖你，你清香我
-让我们一起榴芒一下吧"
-</small>
-                                <ins><a class="btn_buya" href="http://www.dingdangao.net.cn/Product/Show/12">立即购买</a></ins>
-                                
-                            </div>
-                        </div>
-                    </div>
-                    <div class="lista col-lg-3">
-                        <a class="list_pica" href="http://www.dingdangao.net.cn/Product/Show/13">
-                            <img src="<%=path %>/images/ps_1709261437182368528.jpg">
-                        </a>
-                        <div class="lista_text">
-                            <div class="list_bt0">
-                                <i class="icon_cu"><img src="<%=path %>/images/tag_new_38.png" width="39" height="16"></i>
-                                <a class="bta" href="http://www.dingdangao.net.cn/Product/Show"><h2>榴莲相思</h2></a>                                
-                                <span>￥ 138.00</span>
-                            </div>
-                            <div class="list_bt1">
-                                <span>￥ 138.00</span>
-                                <small class="">浓郁的新鲜榴莲果肉夹心，浪漫的白巧克力飘雪，缠绵的松软蛋糕胚底，对于喜爱榴莲的您，每口都是一种独特的享受。
-</small>
-                                <ins><a class="btn_buya" href="http://www.dingdangao.net.cn/Product/Show/13">立即购买</a></ins>                               
-                            </div>
-                        </div>
-                    </div>
-                    <div class="lista col-lg-3">
-                        <a class="list_pica" href="http://www.dingdangao.net.cn/Product/Show/3090">
-                            <img src="<%=path %>/images/ps_1711161444442953106.jpg">
-                        </a>
-                        <div class="lista_text">
-                            <div class="list_bt0">
-                                <i class="icon_cu"><img src="<%=path %>/images/tag_new_38.png" width="39" height="16"></i>
-                                <a class="bta" href="http://www.dingdangao.net.cn/Product/Show"><h2>海盐脆脆蛋糕</h2></a>                               
-                                <span>￥ 99.00</span>
-                            </div>
-                            <div class="list_bt1">
-                                <span>￥ 99.00</span>
-                                <small class="">精美的小芳蛋糕胚和嫩滑的奶油，以杏仁碎夹心，精选地中海海盐，给你口感上不一样的享受，体验中国好蛋糕滋味 </small>
-                                <ins><a class="btn_buya" href="http://www.dingdangao.net.cn/Product/Show/3090">立即购买</a></ins>                                
-                            </div>
-                        </div>
-                    </div> 
-        </div>
+        	</c:forEach>
+            </div>
     </div>
 <!--侧边栏-->
 <footer class="web_footer">
@@ -396,8 +326,6 @@
         </div>
         
         <div class="btn_boxa">
-            <span><a href="https://m.weibo.cn/u/5977488060" target="_black"><i class="icon-cb-app-new-08"></i></a></span>
-            <span><i class="icon-CBicon-new-svg-11"></i></span>
             <span><i class="app_size">APP</i></span>
         </div>
         <div class="footer_bot">

@@ -35,6 +35,13 @@ public class UserDaoImpl {
 			return null;
 	}
 	
+	public User findById(int id){
+		String hql = "from User where id = ?";
+		Query query=(Query) this.sessionFactory.getCurrentSession().createQuery(hql);
+		query.setParameter(0,id);
+		return (User) query.uniqueResult();
+	}
+	
 	public User findByPass(String password){
 		String hql = "from User where password = ?";
 		Query query=(Query) this.sessionFactory.getCurrentSession().createQuery(hql);
@@ -61,4 +68,43 @@ public class UserDaoImpl {
 		this.sessionFactory.getCurrentSession().save(address);
 		return address;
 	}
+	
+	public void updateName(int id,String name){
+		String hql = "update User as u set u.name = ? where u.id = ?";
+		Query query=(Query) this.sessionFactory.getCurrentSession().createQuery(hql);
+		query.setParameter(0,name);
+		query.setParameter(1,id);
+		query.executeUpdate(); 
+	}
+	
+	public void updateHead(int id,String head){
+		String hql = "update User as u set u.head = ? where u.id = ?";
+		Query query=(Query) this.sessionFactory.getCurrentSession().createQuery(hql);
+		query.setParameter(0,head);
+		query.setParameter(1,id);
+		query.executeUpdate(); 
+	}
+	public void updatePhoneNum(int id,String phoneNum){
+		String hql = "update User as u set u.phoneNum = ? where u.id = ?";
+		Query query=(Query) this.sessionFactory.getCurrentSession().createQuery(hql);
+		query.setParameter(0,phoneNum);
+		query.setParameter(1,id);
+		query.executeUpdate(); 
+	}
+	public void updateEmail(int id,String email){
+		String hql = "update User as u set u.email = ? where u.id = ?";
+		Query query=(Query) this.sessionFactory.getCurrentSession().createQuery(hql);
+		query.setParameter(0,email);
+		query.setParameter(1,id);
+		query.executeUpdate(); 
+	}
+	
+	public void updatePassword(int id,String password){
+		String hql = "update User as u set u.password = ? where u.id = ?";
+		Query query=(Query) this.sessionFactory.getCurrentSession().createQuery(hql);
+		query.setParameter(0,password);
+		query.setParameter(1,id);
+		query.executeUpdate(); 
+	}
+	
 }

@@ -5,16 +5,11 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.cake.dao.product.ProductDaoImpl;
 import com.cake.dao.user.UserDaoImpl;
-import com.cake.entity.product.Product;
-import com.cake.entity.user.Address;
 import com.cake.entity.user.User;
 
 @Service
-@Transactional(readOnly=true)
 public class UserServiceImpl {
 	@Resource
 	private UserDaoImpl userDaoImpl;
@@ -43,21 +38,22 @@ public class UserServiceImpl {
 			return null;
 	}
 	
-	public List<Address> findAddress(int id){
-		List<Address> la = this.userDaoImpl.findAddress(id);
-		if(la != null)
-			return la;
-		else
-			return null;
+	public User findById(int id){
+		return this.userDaoImpl.findById(id);
 	}
-	
-	public Address addAddress(Address address){
-		List<Address> la = this.userDaoImpl.findAddress(address.getUserId());
-		for(Address a:la){
-			if(a.getName().equals(address.getName()) && a.getPhoneNum().equals(address.getPhoneNum()) && a.getAddress().equals(address.getAddress())){
-				return null;
-			}
-		}
-		return  this.userDaoImpl.saveAddress(address);
+	public void updateName(int id,String name){
+		this.userDaoImpl.updateName(id,name);
+	}
+	public void updatePhoneNum(int id, String phoneNum){
+		this.userDaoImpl.updatePhoneNum(id,phoneNum);
+	}
+	public void updateEmail(int id,String email){
+		this.userDaoImpl.updateEmail(id,email);
+	}
+	public void updatePassword(int id,String password){
+		this.userDaoImpl.updatePassword(id,password);
+	}
+	public void updateHead(int id,String head){
+		this.userDaoImpl.updateHead(id,head);
 	}
 }

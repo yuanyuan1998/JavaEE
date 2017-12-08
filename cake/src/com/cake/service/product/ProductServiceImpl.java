@@ -35,4 +35,9 @@ public class ProductServiceImpl {
 		List<Product> tpl = this.productDaoImpl.findByTypeId(typeId);
 		return tpl;
 	}
+	
+	public List<Product> findHot(String hot){
+		List<Product> h =this.productDaoImpl.findHot(hot);
+		return h;
+	}
 }

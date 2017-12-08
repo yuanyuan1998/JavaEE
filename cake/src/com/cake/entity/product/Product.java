@@ -17,7 +17,7 @@ public class Product {
 	private String name;
 	private String description;
 	private Date date;
-	private String viewNum;
+	private String hot;
 	private String img1;
 	private String img2;
 	private String img3;
@@ -57,12 +57,12 @@ public class Product {
 	public void setDate(Date date) {
 		this.date = date;
 	}
-	@Column(name="viewnum")
-	public String getViewNum() {
-		return viewNum;
+	@Column(name="hot")
+	public String getHot() {
+		return hot;
 	}
-	public void setViewNum(String viewNum) {
-		this.viewNum = viewNum;
+	public void setHot(String hot) {
+		this.hot = hot;
 	}
 	@Column(name="img1")
 	public String getImg1() {

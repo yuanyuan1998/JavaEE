@@ -1,6 +1,5 @@
-package com.cake.entity.cart;
+package com.cake.entity.user;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -9,17 +8,16 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.GenericGenerator;
 
-import com.cake.entity.product.Product;
-
 @Entity
-@Table(name="cart")
-public class Cart {
+@Table(name="orderproduct")
+public class OrderProduct {
 	private int id;
+	private int userId;
 	private int productId;
 	private int size;
 	private int count;
-	private int userId;
-	private int countNum;
+	private int addressId;
+	private String orderType;
 	private int productPrice;
 	private String productName;
 	private String productImg;
@@ -33,41 +31,41 @@ public class Cart {
 	public void setId(int id) {
 		this.id = id;
 	}
-	@Column(name="productId")
-	public int getProductId() {
-		return productId;
-	}
-	public void setProductId(int productId) {
-		this.productId = productId;
-	}
-	
-	@Column(name="size")
-	public int getSize() {
-		return size;
-	}
-	public void setSize(int size) {
-		this.size = size;
-	}
-	@Column(name="count")
-	public int getCount() {
-		return count;
-	}
-	public void setCount(int count) {
-		this.count = count;
-	}
-	@Column(name="userId")
 	public int getUserId() {
 		return userId;
 	}
 	public void setUserId(int userId) {
 		this.userId = userId;
 	}
-	@Formula(value="(select sum(c.count) from cart as c where c.userId = userId)")  
-	public int getCountNum() {
-		return countNum;
+	public int getProductId() {
+		return productId;
 	}
-	public void setCountNum(int countNum) {
-		this.countNum = countNum;
+	public void setProductId(int productId) {
+		this.productId = productId;
+	}
+	public int getSize() {
+		return size;
+	}
+	public void setSize(int size) {
+		this.size = size;
+	}
+	public int getCount() {
+		return count;
+	}
+	public void setCount(int count) {
+		this.count = count;
+	}
+	public int getAddressId() {
+		return addressId;
+	}
+	public void setAddressId(int addressId) {
+		this.addressId = addressId;
+	}
+	public String getOrderType() {
+		return orderType;
+	}
+	public void setOrderType(String orderType) {
+		this.orderType = orderType;
 	}
 	@Formula(value="(select p.price from product as p where p.id = productId)") 
 	public int getProductPrice() {
@@ -90,6 +88,4 @@ public class Cart {
 	public void setProductImg(String productImg) {
 		this.productImg = productImg;
 	}
-	
-	
 }

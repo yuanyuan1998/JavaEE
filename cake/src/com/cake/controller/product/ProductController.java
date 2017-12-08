@@ -28,7 +28,6 @@ public class ProductController {
 		List<Product> lp=this.ProductServiceImpl.findAll();
 		System.out.println(lp.get(1).getName());
 		request.setAttribute("lp", lp);
-		model.addAttribute(lp);
 		return "allproduct";
 	}
 	
@@ -54,5 +53,12 @@ public class ProductController {
 		request.setAttribute("tpl", tpl);
 		return "typeproduct";
 	}
-
+	
+	@RequestMapping("/hot")
+	public String findHot(@RequestParam("hot") String hot,HttpServletRequest request){
+		List<Product> h = this.ProductServiceImpl.findHot(hot);
+		request.setAttribute("h", h);
+		return "hotproduct";
+	}
+	
 }

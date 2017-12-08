@@ -15,7 +15,8 @@ public class User {
 	private String name;
 	private String password;
 	private String phoneNum;
-	private String email;
+	private String email;;
+	private String head;
 	
 	@Id
     @GeneratedValue(generator="my_gen")
@@ -53,6 +54,12 @@ public class User {
 	}
 	public void setEmail(String email) {
 		this.email = email;
+	}
+	public String getHead() {
+		return head;
+	}
+	public void setHead(String head) {
+		this.head = head;
 	}
 	
 }

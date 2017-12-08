@@ -101,15 +101,11 @@
                 }
             });   
             $(function () {//显示用户名
-            	if('${user.name }' != "" ){
+            	if('${user }' != "" ){
             		$("a").remove("#b");
-            		var html = "<a href=' "+'<%=path %>/person.jsp'+" '>"+'${user.name}'+"</a>";
+            		var html = "<a href=' "+'<%=path %>/order/unpaid'+" '>"+'${user.name}'+"</a>";
             		document.getElementById('a').innerHTML = html;
             	}
-            	$.ajax({
-                    type : "post",
-                    url : "<%=path %>/user/address"
-        		});
             });
         });
     </script>
@@ -121,8 +117,6 @@
                 });
             }
         });
-        var UserId = "37740";
-        var DomainPlaceId = "233";
     </script>
 <style>
     .sj_header {
@@ -145,7 +139,7 @@
                 <ul class="menu"> 
                     <li class=""> <a href="<%=path %>/index.jsp">首页</a></li>
                     <li class=""> <a href="<%=path %>/product/allProduct">所有产品</a></li>
-                    <li class=""> <a href="http://www.dingdangao.net.cn/Product/List">热门产品</a></li>
+                    <li class=""> <a href="<%=path %>/product/hot?hot=1">热门产品</a></li>
                     <li class="">
                         <a href="<%=path %>/product/type?typeid=1">蛋糕</a>
                         <dl class="hide_a">
@@ -158,7 +152,7 @@
                 </ul>
                 <div class=" pull-right menu_right">
                     <span class="co_g3 menu_nav">电话：400-6340-500</span>
-                    <a href="<%=path %>/cart.jsp" class="co_g3 menu_nav">${countNum }  件</a>
+                    <a href="<%=path %>/cart/productCart?userId=${user.id}" class="co_g3 menu_nav">我的购物车</a>
                     <a href="<%=path %>/login.jsp" onclick="loginMember()" id="a"><i class="co_g3"></i>登录</a>
                     <a href="<%=path%>/regist.jsp"  id="b">注册</a>
                 </div>
@@ -266,7 +260,7 @@
 </script>
 <div class="pull-left me_side">
     <div class="me_style">
-            <a class="tx" title="点击更换头像" href="" style="background-image:url(<%=path %>/images/toux.jpg);"></a>
+            <a class="tx" href="" style="background-image:url(${user.head});"></a>
         <h3>${user.name }</h3>
     <div class="clearfix"></div>
 </a>
@@ -286,8 +280,7 @@
         <h2 class="order_title">个人信息</h2>
         <ul class="mes_list">
             <li><a href="javascript:void(0);" onclick="message()"><span class="fa fa-info"></span>个人资料</a></li>
-            <li><a href=""><span class="fa fa-truck"></span>收货地址</a></li>
-            <li><a href=""><span class="fa fa-pencil"></span>修改密码</a></li>
+            <li><a href="<%=path %>/address/user"><span class="fa fa-truck"></span>收货地址</a></li>
         </ul>
     </div>
 </div>
@@ -301,105 +294,36 @@
             }
         });
     })
+    function revice(){
+    	$("#info").toggle();
+    };
 </script>
-	<div class="pull-right me_cont">
+<div>
+		<div class="pull-right me_cont"  id="unpaid" >
             <h2 style="font-size:20px; font-weight:500; margin-top:0; border-bottom:#ddd solid 1px; line-height:40px;">个人资料</h2>
-            <div class="meinfo_img">
-                <div class="fl uploadPreview2" style="width:145px;">
-                        <a href="/MyAccount/MyInfo"><img src="/Contents/images/tou_img_07.jpg" width="145" height="145" alt=""></a>
-                </div>
-                <div class="fl add_tou upload">
-                    <div class="uploadProgressBar" id="uploadify-queue"></div>
-                    <div class="uploadBut" style="left:0;top:40px;">
-                        <input type="file" name="uploadify" id="uploadify" src="" />
-                    </div>
-                    <input type="hidden" name="ImgPath" id="ImgPath" value="" />
-                    <div style="position: absolute; top: 30px; left: 180px;"></div>
-                </div>
-                <div class="fl tou_set_info">
-                    <span>
-                        用户：<span id="Name">哦哦</span><a class="edit" href="javascript:void(0);" title="修改"></a>
-                        <div class="info_tc">
-                            <em></em>
-                            <input class="info_text" name="" type="text" value="哦哦" />
-                            <input class="info_sure" name="" type="button" value="修改" onclick="updateUserOne(0)"><i></i>
-                        </div>
-                    </span><br />
-                    <span>
-                        邮箱：<span id="Email">
-                            
-                        </span><a class="edit" href="javascript:void(0);" title="修改"></a>
-                        <div class="info_tc">
-                            <em></em>
-                            <input class="info_text" name="" type="text" value="" />
-                            <input class="info_sure" name="" type="button" value="修改" onclick="updateUserOne(1)"><i></i>
-                        </div>
-                    </span><br />
-                    <span>
-                        手机：<span id="Phone">18332163921</span><a class="edit" href="javascript:void(0);" title="修改"></a>
-                        <div class="info_tc">
-                            <em></em>
-                            <input class="info_text" name="" type="text" value="18332163921" />
-                            <input class="info_sure" name="" type="button" value="修改" onclick="updateUserOne(2)"><i></i>
-                        </div>
-                    </span>
-                </div>
-                <div class="spacer"></div>
-            </div>
-            <div>
-                <dl class="of_new_address_list">
-                    <dt>性别：</dt>
-                    <dd>
-                        <label>
-                            <input type="radio" name="RadioGroup1" checked="checked" value="1">
-                            男
-                        </label>
-                        <label>
-                            <input type="radio" name="RadioGroup1" value="0">
-                            女
-                        </label>
-                    </dd>
-                    <div class="spacer"></div>
-                </dl>
-                <dl class="of_new_address_list">
-                    <dt>出生日期：</dt>
-                    <dd>
-                        <form id="form1" name="form1">
-                            <select style="width:90px;" name=YYYY id="YYYY" onchange="YYYYMM(this.value)">
-                                <option value="">选择 年</option>
-                            </select>
-                            <select style="width:90px;" name=MM id="MM" onchange="MMDD(this.value)">
-                                <option value="">选择 月</option>
-                            </select>
-                            <select style="width:90px;" name=DD id="DD">
-                                <option value="">选择 日</option>
-                            </select>
-                            <font></font>
-                            <br />
-                        </form>
-                    </dd>
-                    <div class="spacer"></div>
-                </dl>
-                <dl class="of_new_address_list">
-                    <dt>简介：</dt>
-                    <dd>
-                        <textarea placeholder="请输入简介" style="width:572px;height:60px;"></textarea>
-                    </dd>
-                    <div class="spacer"></div>
-                </dl>
-                <dl class="of_new_address_list" style="margin-top:20px;">
-                    <dt>&nbsp;</dt>
-                    <dd><a class="btn_fabiao btn_usual" href="javascript:void(0);" onclick="updateUser()">提 交</a><span id="updateUserTip"></span></dd>
-
-                    <div class="spacer"></div>
-                </dl>
-
-            </div>
+            <a class="icon_area_add" href="javascript:void(0);" onclick="revice()">编辑个人资料</a>
+            <div class="fanke" style="display:none" id="info">
+            <form action="<%=path %>/user/upload" method="post"  enctype="multipart/form-data" >
+            	<img src="<%=path %>/images/tou_img_07.jpg"  width="100px" />
+           		<input type="file" name="head"  /><br>
+           		<input type="submit" value="上传" />
+            </form>
+            <form action="<%=path %>/user/revice" method="post" >
+           		用户：<input type="text" name="name"  placeholder="${user.name }" /><br>
+           		<p></p>
+           		邮箱：<input type="text" name="email" placeholder="${user.email }"  /><br>
+           		<p></p>
+           		手机：<input type="text" name="phoneNum"  placeholder="${user.phoneNum }"  /><br>
+           		<p></p>
+           		原密码：<input type="password" name="password" /><br>
+           		<p></p>
+           		修改密码：<input type="password" name="password1" /><br>
+           		<input type="submit" value="确认修改" />
+           </form>
+           </div>
         </div>
         <div class="spacer"></div>
-    </div>
-</div>
-
+	</div>
 <script>
     $(function () {
         $("#buy2").hide();

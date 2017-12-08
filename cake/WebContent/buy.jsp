@@ -110,7 +110,7 @@
         $(function () {//显示用户名
         	if('${user.name }' != "" ){
         		$("a").remove("#b");
-        		var html = "<a href=' "+'<%=path %>/person.jsp'+" '>"+'${user.name}'+"</a>";
+        		var html = "<a href=' "+'<%=path %>/order/unpaid'+" '>"+'${user.name}'+"</a>";
         		document.getElementById('a').innerHTML = html;
         	}
         });
@@ -171,16 +171,15 @@
     <div class="bt"><h2>确认商品信息</h2></div>
     <table class="tabl_list" width="0" border="0" cellspacing="0" cellpadding="0" id="tableBuy1">
         <tbody><tr>
-        	<th><input type="checkbox" value="" id="box"  />全选</th>
+        	<th><input type="checkbox" name="checkboxs"  value="" id="box"  />全选</th>
             <th scope="col">&nbsp;&nbsp;&nbsp;&nbsp;商品</th>
             <th scope="col">单价</th>
             <th scope="col">数量</th>
             <th scope="col">小计</th>
-            <th width="40" scope="col">操作</th>
         </tr>
         	<c:forEach items="${cartlist }" var="c" >
         		<tr indexpid="11" id="li1-11">
-        			<td><input name="checkbox" type="checkbox" value="${c.productId },${c.size },${c.count }" /></td>
+        			<td><input name="checkbox" type="checkbox" value="${c.productId },${c.size },${c.count },${c.productPrice}" /></td>
                     <td valign="middle"><a href="javascript:void(0);"><img width="48" height="48" src="${c.productImg }" class="d_pic"></a><span class="d_title">${c.productName }<br> <i>约${c.size }磅</i></span></td>
                     <td valign="middle" iscookie="0" show="188.00" mid="11" pid="1004">
                         ￥<span>${c.productPrice }.00</span>
@@ -188,13 +187,10 @@
                     <td valign="middle">
                     	<span class="dd_num2" style="display:none;">${c.count }</span>
                     	<span class="dd_num">
-                    		<a href="<%=path %>/cart/jianCount?id=${c.productId}&size=${c.size}&count=${c.count}">-</a>
                     		<input name="" type="text" value="${c.count }">
-                    		<a href="<%=path %>/cart/addCount?id=${c.productId}&size=${c.size}&count=${c.count}">+</a>
                     	</span>
                     </td>
                     <td class="xj" valign="middle">${c.productPrice*c.count}</td>
-                    <td mid="11"><a href="<%=path %>/cart/deleteProduct?id=${c.productId}&size=${c.size}&count=${c.count}"  class="pro_del">删除</a></td>
                 </tr>
         	</c:forEach>
     </tbody></table>
@@ -203,67 +199,202 @@
         </div>
     </div>  
     <script type="text/javascript">
-	    $(function (){  
-	        //给总计赋值  
-	        var sum = 0.0;  
-	       $(".xj").each(function(){  
-	            sum = sum + parseInt($(this).text());  
-	        });   
-	        //给总计赋值  
-	        $("#total").text(sum);  
+    $("input[name='checkbox']").click(function () {  
+	    	//给总计赋值  
+	        var sumprice = 0.0;
+	    	var sumcount = 0;
+	    	var price = 0.0;
+	    	var count = 0;
+	    	var groupCheckbox=$("input[name='checkbox']");
+		    for(i=0;i<groupCheckbox.length;i++){
+		        if(groupCheckbox[i].checked){
+		            var val =groupCheckbox[i].value;
+		            var val1 = val.split(",");
+		            var count = val1[2];
+		    	    var price = val1[3];
+		    	    sumprice = sumprice + count*price;
+		    	    sumcount = parseInt(sumcount) + parseInt(count);
+		        }
+		    } 
+	        $("#total").text(sumprice);  
+	        $("#countnum").text(sumcount); 
 	    }); 
-	    onload = function ()
+    onload = function ()
+    {
+	    var obox = document.getElementById ("box");
+	    var ach = document.getElementsByName ("checkbox");	
+	    //设置全选按钮选中的时候，遍历选中所有子复选框
+	    obox.onclick = function ()
 	    {
-		    var obox = document.getElementById ("box");
-		    var ach = document.getElementsByName ("checkbox");	
-		    //设置全选按钮选中的时候，遍历选中所有子复选框
-		    obox.onclick = function ()
-		    {
+	    	if(this.checked == true){
+	    		var sumprice = 0.0;
+		    	var sumcount = 0;
+		    	var price = 0.0;
+		    	var count = 0;
 		    	for ( var i = 0; i < ach.length; i++)
 			    {
 			    	ach[i].checked = this.checked;
+			    	var val =ach[i].value;
+		            var val1 = val.split(",");
+		            var count = val1[2];
+		    	    var price = val1[3];
+		    	    sumprice = sumprice + count*price;
+		    	    sumcount = parseInt(sumcount) + parseInt(count);
 			    }
-		    }
-		    //子复选框有一个未选中时，去掉全选按钮的选中状态
-		    for ( var i = 0; i < ach.length; i++)
-		    {
-			    ach[i].onclick = function ()
+		    	 $("#total").text(sumprice);  
+		         $("#countnum").text(sumcount);
+	    	}else{
+	    		for ( var i = 0; i < ach.length; i++)
 			    {
-				    if ( !this.checked )
-				    {
-				    	obox.checked = false;
-				    }
-			    };
-		    }
+			    	ach[i].checked = this.checked;
+			    }
+		    	 $("#total").text(0);  
+		         $("#countnum").text(0);
+	    	}
 	    }
-    	function deletes(){
-    		var groupCheckbox=$("input[name='checkbox']");
-    	    for(i=0;i<groupCheckbox.length;i++){
-    	        if(groupCheckbox[i].checked){
-    	            var val =groupCheckbox[i].value;
-    	            var val1 = val.split(",");
-    	    	    var id = val1[0];
-    	    	    var size = val1[1];
-    	    	    var count = val1[2];
-    	    	    $.ajax({
-    	                type : "post",
-    	                url : "<%=path %>/cart/deleteProduct?id="+id,
-    	                data:{size:size,count:count}
-    	    		});
-    	    	    location.reload();
-    	        }
-    	    }
-    	};
+	    //子复选框有一个未选中时，去掉全选按钮的选中状态
+	    for ( var i = 0; i < ach.length; i++)
+	    {
+		    ach[i].onclick = function ()
+		    {
+			    if ( !this.checked )
+			    {
+			    	obox.checked = false;
+			    }
+		    };
+	    }
+    }
+	    function addAddress(){
+			$("#Address").toggle();
+		};
     </script>
     <div class="d_dan_result" >
-        <h2><span>共${countNum }件&nbsp&nbsp&nbsp</span>您需为订单支付：￥<span id="total"></span></h2>
-        <div class="d_dan_order_btn" id="confirm">
-        	<a class="back_home" href="javascript:void(0);" onclick="deletes()"><i></i>批量删除</a>
-        	<a class="back_home" href="<%=path %>/index.jsp"><i></i>再逛逛</a>
-        	<a class="submit_order" href="<%=path %>/address/order">确认</a></div>
+        <h2>共<span id="countnum">0</span>件&nbsp&nbsp&nbsp您需为订单支付：￥<span id="total">0</span></h2>
+</div>
+<script type="text/javascript">
+</script>
+<div class="wd" id="buy2">
+    <div id="DeliveryDiv">
+        <div class="bt" ><h2>收货地址</h2></div>
+        <div>
+        	<p></p>
+	        	请选择收货地址：
+	        	<select id="dizhi">
+	        		<c:forEach items="${la }" var="a">
+	        			<option value="${a.id }"> ${a.name } ${a.phoneNum } ${a.address}</option>
+	        		</c:forEach>
+	        	</select>
+        </div>
+        <div class="shsm" >
+            <div style="margin-top: 20px;" id="userAddress"><div class="spacer"></div></div>
+            <div>
+                <a class="icon_area_add" href="javascript:void(0);" onclick="addAddress()">+新增地址</a>
+                <input type="hidden" id="addIsDefault" value="0">
+                <div class="join_cont" >
+                    <div class="fanke" style="display:none" id="Address">
+                    	<form action="<%=path %>/address/orderAdd" method="post">
+                    		<p></p>
+                    		下单人姓名：<input type="text" name="name" ><br>
+                    		<p></p>
+	                        下单人手机：<input type="text" name="phoneNum" ><br>
+	                        <p></p>
+	                        地&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp址：<input type="text" name="address" ><br>
+	                        <input type="submit" value="确定" /> 
+                    	</form>
+                    </div>
+                </div>
+                <br>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div id="deliveryTime">
+               <div class="bt"><h2>温馨提示</h2></div>
+               <br>
+	                提前2小时订购<br>
+	                当天19:00前订购，可当天送货，送货时间顺延2小时当天19:00-21:00订购，最早送货时间为第二天10:00<br>
+	                21:00之后订购，最早送货时间为第二天11:00<br>
+	                重大节日（如情人节）需要至少提前一天订购
+    			</div>
+    			<br>
+    	<div>
+        	<div class="bt"><h2>支付方式</h2></div>
+        	<div class="of_time_select">
+            <dl class="of_zhifu">
+                <dd>
+                    <label><input class="raduo" name="r3" type="radio" value="" checked="checked"><span class="of_zi">支付宝</span></label>
+                    <label><input class="raduo" name="r3" type="radio" value=""><span class="of_zi">微信支付</span></label>
+                </dd>
+            </dl>
+        </div>
+    </div>
+    <div class="bt"><h2>备注</h2></div>
+    <div class="of_time_select">
+        <textarea placeholder="请输入备注信息" name="" cols="" rows="" id="RemarkSys"></textarea>
+    </div>
+    <div class="btn_box">
+        <a class="submit_order" id="submit_order" onclick="buy2()" href="javascript:">提交订单</a>
     </div>
 </div>
 <script type="text/javascript">
+	function buy2(){
+		var groupCheckbox=$("input[name='checkbox']");
+		var a1 = new Array();
+		var b1 = new Array();
+		var c1 = new Array();
+		var a2 = new Array();
+		var b2 = new Array();
+		var c2 = new Array();
+	    for(i=0;i<groupCheckbox.length;i++){
+	        if(groupCheckbox[i].checked){
+	            var val =groupCheckbox[i].value;
+	            var val1 = val.split(",");
+	    	    var id = val1[0];
+	    	    var size = val1[1];
+	    	    var count = val1[2];
+	    	    a1[i] = id;
+	    	    b1[i] = size;
+	    	    c1[i] = count;
+	        }
+	    }
+	    for(i=0;i<groupCheckbox.length;i++){
+	    	if(!groupCheckbox[i].checked){
+	        	var val =groupCheckbox[i].value;
+	            var val1 = val.split(",");
+	    	    var id = val1[0];
+	    	    var size = val1[1];
+	    	    var count = val1[2];
+	    	    a2[i] = id;
+	    	    b2[i] = size;
+	    	    c2[i] = count;
+	        }
+	    }
+	    var productId1 = a1.join("-");
+	    var size1 = b1.join("-");
+	    var count1 = c1.join("-");
+	    var productId2 = a2.join("-");
+	    var size2 = b2.join("-");
+	    var count2 = c2.join("-");
+	    var options=$("#dizhi option:selected");  //获取选中的项
+	    var addressId = options.val();
+	    $.ajax({
+	    	async:false,
+            type : "post",
+            datatype:"json",
+            url : "<%=path %>/order/save?productId1="+productId1,
+            data:{productId2:productId2,count1:count1,size1:size1,count2:count2,size2:size2,addressId:addressId},
+            success : function() {
+            		 var context = "购买成功";
+	       		     var divCover = document.createElement("div");
+	       		     divCover.setAttribute("id", "divCover");
+	       		     divCover.setAttribute("class", "popup_box p_box4");
+	       		     divCover.setAttribute("style", "z-index: 2002");
+	       		     divCover.innerHTML = '<div class="pop_cont"><div class="p_box2_tips" style="height:65px;margin-top:35px;"><i class="pop_cg"></i>' + context + '</div></div><div class="pop_btn"><div style="margin-top: 10px;"><a class="back_home" href="<%=path%>/index.jsp" onclick="closeLoginPanel()"><i></i>关闭</a></div></div>';
+	       		     $("body").append($(divCover));
+	       		     popup($(".p_box4"));
+     	        }
+        });
+	};
 </script>
 <!--侧边栏-->
 <footer class="web_footer">

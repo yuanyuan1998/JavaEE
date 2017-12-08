@@ -156,11 +156,9 @@
             <div class="pull-left logo"><a href="<%=path %>/index.jsp"><img src="<%=path %>/images/alogo7_03.png" width="181" height="39"></a></div>
 <form action="http://www.dingdangao.net.cn/Product/List1" id="list_form_type" method="post">                <input type="hidden" name="typeid" id="typeid">
                 <ul class="menu">
-
-                    
                     <li class=""> <a href="<%=path %>/index.jsp">首页</a></li>
                     <li class="cur"><a href="<%=path %>/product/allProduct">所有产品</a></li>
-                    <li class="cur"><a href="http://www.dingdangao.net.cn/Product/List">热门产品</a></li>
+                    <li class=""> <a href="<%=path %>/product/hot?hot=1">热门产品</a></li>
                     <li class="">
                         <a href="<%=path %>/product/type?typeid=1">蛋糕</a>
                         <dl class="hide_a">
@@ -173,7 +171,7 @@
                 </ul>
                 <div class=" pull-right menu_right">
                     <span class="co_g3 menu_nav">电话：400-6340-500</span>
-                    <a href="<%=path %>/cart.jsp" class="co_g3 menu_nav">${countNum } 件</a>
+                    <a href="<%=path %>/cart/productCart?userId=${user.id}" class="co_g3 menu_nav">我的购物车</a>
                         <a href="<%=path %>/login.jsp" onclick="loginMember()" id="a"><i class="co_g3"></i>登录</a>
                         <a href="<%=path %>/regist.jsp" id="b">注册</a>
                 </div>
@@ -181,13 +179,11 @@
     </header>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>商品列表页</title>
-    
+    <title>商品列表页</title>   
     <script src="<%=path %>/js/myScroll.js.下载" type="text/javascript"></script>
     <script src="<%=path %>/js/Detail.js.下载"></script>
     <script src="<%=path %>/js/product.js.下载"></script>
     <script src="<%=path %>/js/buy1.js.下载"></script>
-
     <script>
         $(function () {
             //案例幻灯片

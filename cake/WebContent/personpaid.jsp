@@ -104,13 +104,9 @@
             $(function () {//显示用户名
             	if('${user.name }' != "" ){
             		$("a").remove("#b");
-            		var html = "<a href=' "+'<%=path %>/person.jsp'+" '>"+'${user.name}'+"</a>";
+            		var html = "<a href=' "+'<%=path %>/order/unpaid'+" '>"+'${user.name}'+"</a>";
             		document.getElementById('a').innerHTML = html;
             	}
-            	$.ajax({
-                    type : "post",
-                    url : "<%=path %>/user/address"
-        		});
             });
         });
     </script>
@@ -146,7 +142,7 @@
                 <ul class="menu"> 
                     <li class=""> <a href="<%=path %>/index.jsp">首页</a></li>
                     <li class=""> <a href="<%=path %>/product/allProduct">所有产品</a></li>
-                    <li class=""> <a href="http://www.dingdangao.net.cn/Product/List">热门产品</a></li>
+                    <li class=""> <a href="<%=path %>/product/hot?hot=1">热门产品</a></li>
                     <li class="">
                         <a href="<%=path %>/product/type?typeid=1">蛋糕</a>
                         <dl class="hide_a">
@@ -159,7 +155,7 @@
                 </ul>
                 <div class=" pull-right menu_right">
                     <span class="co_g3 menu_nav">电话：400-6340-500</span>
-                    <a href="<%=path %>/cart.jsp" class="co_g3 menu_nav">${countNum }  件</a>
+                    <a href="<%=path %>/cart/productCart?userId=${user.id}" class="co_g3 menu_nav">我的购物车</a>
                     <a href="<%=path %>/login.jsp" onclick="loginMember()" id="a"><i class="co_g3"></i>登录</a>
                     <a href="<%=path%>/regist.jsp"  id="b">注册</a>
                 </div>
@@ -269,7 +265,7 @@
 </script>
 <div class="pull-left me_side">
     <div class="me_style">
-            <a class="tx" title="点击更换头像" href="" style="background-image:url(<%=path %>/images/toux.jpg);"></a>
+            <a class="tx" title="" href="" style="background-image:url(${user.head});"></a>
         <h3>${user.name }</h3>
     <div class="clearfix"></div>
 </a>
@@ -289,8 +285,7 @@
         <h2 class="order_title">个人信息</h2>
         <ul class="mes_list">
             <li><a href="<%=path %>/information.jsp" ><span class="fa fa-info"></span>个人资料</a></li>
-            <li><a href=""><span class="fa fa-truck"></span>收货地址</a></li>
-            <li><a href=""><span class="fa fa-pencil"></span>修改密码</a></li>
+            <li><a href="<%=path %>/address/user"><span class="fa fa-truck"></span>收货地址</a></li>
         </ul>
     </div>
 </div>
@@ -318,17 +313,22 @@
                     <th align="center" scope="col">操作</th>
                 </tr>
             </tbody>
-            <c:forEach items="${cartlist }" var="c" >
+             <c:forEach items="${ppl }" var="c" >
         		<tr indexpid="11" id="li1-11" >
-                    <td valign="middle" align="left"><a href="javascript:void(0);"><img width="48" height="48" src="${c.product.img1 }" class="d_pic"></a><span class="d_title">${c.product.name }<br> <i>约${c.size }磅</i></span></td>
+                    <td valign="middle" align="left"><a href="javascript:void(0);"><img width="48" height="48" src="${c.productImg }" class="d_pic"></a><span class="d_title">${c.productName }<br> <i>约${c.size }磅</i></span></td>
                     <td valign="middle" iscookie="0" show="188.00" mid="11" pid="1004" align="center">
-                        ￥<span>${c.product.price }.00</span>
+                        ￥<span>${c.productPrice }.00</span>
                     </td>
-                    <td valign="middle" align="center">${c.count }</td>
-                    <td class="xj" valign="middle" align="center">${c.product.price*c.count}</td>
+                    <td valign="middle">
+                    	<span class="dd_num2" style="display:none;">${c.count }</span>
+                    	<span class="dd_num">
+                    		<input name="" type="text" value="${c.count }">
+                    	</span>
+                    </td>
+                    <td class="xj" valign="middle" align="center">${c.productPrice*c.count}</td>
                     <td mid="11" align="center">已付款</td>
                     <td mid="11" align="center">
-                    	<a href="">删除</a>
+                    	<a href="<%=path %>/order/deletePaid?id=${c.productId}&size=${c.size}">删除</a>
                     </td>
                 </tr>
         	</c:forEach>

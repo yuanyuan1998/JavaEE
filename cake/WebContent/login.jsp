@@ -130,7 +130,7 @@
 	    $(function () {
 	    	if('${user.name }' != "" ){
 	    		$("a").remove("#b");
-	    		var html = "<a href=' "+'<%=path %>/person.jsp'+" '>"+'${user.name}'+"</a>";
+	    		var html = "<a href=' "+'<%=path %>/order/unpaid'+" '>"+'${user.name}'+"</a>";
 	    		document.getElementById('a').innerHTML = html;
 	    	}
 	    });
@@ -162,7 +162,7 @@
                 <ul class="menu"> 
                     <li class=""> <a href="<%=path %>/index.jsp">首页</a></li>
                     <li class=""> <a href="<%=path %>/product/allProduct">所有产品</a></li>
-                    <li class=""> <a href="http://www.dingdangao.net.cn/Product/List">热门产品</a></li>
+                    <li class=""> <a href="<%=path %>/product/hot?hot=1">热门产品</a></li>
                     <li class="">
                         <a href="<%=path %>/product/type?typeid=1">蛋糕</a>
                         <dl class="hide_a">
@@ -175,7 +175,7 @@
                 </ul>
                 <div class=" pull-right menu_right">
                     <span class="co_g3 menu_nav">电话：400-6340-500</span>
-                    <a href="<%=path %>/cart.jsp" class="co_g3 menu_nav">${countNum } 件</a>
+                    <a href="<%=path %>/cart/productCart?userId=${user.id}" class="co_g3 menu_nav">我的购物车</a>
                     <a href="<%=path %>/login.jsp" onclick="loginMember()" id="a"><i class="co_g3"></i>登录</a>
                     <a href="<%=path%>/regist.jsp" id="b">注册</a>
                 </div>
