@@ -1,14 +1,27 @@
 package com.cake.entity.product;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import javax.persistence.JoinColumn;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.GenericGenerator;
+
+import com.cake.entity.user.OrderProduct;
+import com.cake.entity.user.Orders;
 
 @Entity
 @Table(name="product")
@@ -26,6 +39,9 @@ public class Product {
 	private String img6;
 	private Integer price;
 	private Integer typeId;
+	private String typeName;
+	private List<Size> size = new ArrayList<Size>();
+	private List<OrderProduct> orderProduct = new ArrayList<OrderProduct>(); 
 	
 	@Id
     @GeneratedValue(generator="my_gen")
@@ -120,5 +136,28 @@ public class Product {
 	public void setTypeId(Integer typeId) {
 		this.typeId = typeId;
 	}
-	
+	@ManyToMany(cascade={CascadeType.PERSIST,CascadeType.MERGE})
+    @JoinTable(name="productsize", 
+        joinColumns=@JoinColumn(name="productId"),
+        inverseJoinColumns=@JoinColumn(name="sizeId"))
+	public List<Size> getSize() {
+		return size;
+	}
+	public void setSize(List<Size> size) {
+		this.size = size;
+	}
+	@Formula(value="(select t.type from producttype as t,product as p  where t.id = p.typeId and p.id = id)") 
+	public String getTypeName() {
+		return typeName;
+	}
+	public void setTypeName(String typeName) {
+		this.typeName = typeName;
+	}
+	@OneToMany(mappedBy="product")
+	public List<OrderProduct> getOrderProduct() {
+		return orderProduct;
+	}
+	public void setOrderProduct(List<OrderProduct> orderProduct) {
+		this.orderProduct = orderProduct;
+	}
 }

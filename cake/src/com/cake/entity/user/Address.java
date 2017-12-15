@@ -1,9 +1,16 @@
 package com.cake.entity.user;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.GenericGenerator;
@@ -12,10 +19,11 @@ import org.hibernate.annotations.GenericGenerator;
 @Table(name="address")
 public class Address {
 	private int id;
-	private int userId;
 	private String address;
 	private String name;
 	private String phoneNum;
+	private List<Orders> orders = new ArrayList<Orders>();
+	private User user;
 	
 	@Id
     @GeneratedValue(generator="my_gen")
@@ -26,12 +34,13 @@ public class Address {
 	public void setId(int id) {
 		this.id = id;
 	}
-	@Column(name="userId")
-	public int getUserId() {
-		return userId;
+	@ManyToOne
+    @JoinColumn(name="userId")
+	public User getUser() {
+		return user;
 	}
-	public void setUserId(int userId) {
-		this.userId = userId;
+	public void setUser(User user) {
+		this.user = user;
 	}
 	@Column(name="address")
 	public String getAddress() {
@@ -53,6 +62,13 @@ public class Address {
 	}
 	public void setPhoneNum(String phoneNum) {
 		this.phoneNum = phoneNum;
+	}
+	@OneToMany(mappedBy="address", targetEntity=Orders.class, cascade=CascadeType.ALL)
+	public List<Orders> getOrders() {
+		return orders;
+	}
+	public void setOrders(List<Orders> orders) {
+		this.orders = orders;
 	}
 	
 	

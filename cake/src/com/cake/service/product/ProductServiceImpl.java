@@ -1,24 +1,34 @@
 package com.cake.service.product;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.cake.dao.product.ProductDaoImpl;
 import com.cake.entity.product.Product;
 
 @Service
-@Transactional(readOnly=true)
 public class ProductServiceImpl {
 	@Resource
 	private ProductDaoImpl productDaoImpl;
 	
-	public List<Product> findAll(){
-		List<Product> lp=this.productDaoImpl.findAll();
-		return lp;
+	public void addProduct(Product p){
+		this.productDaoImpl.addProduct(p);
+	}
+	
+	public void deleteProduct(int productId,int sizeId){
+		this.productDaoImpl.deleteProduct(productId, sizeId);
+	}
+	
+	public List<Product> findByName(String name){
+		return this.productDaoImpl.findByNames(name);
+	}
+	
+	public List<Product> all(){
+		return this.productDaoImpl.all();
 	}
 	
 	public Product findById(int id){
@@ -39,5 +49,29 @@ public class ProductServiceImpl {
 	public List<Product> findHot(String hot){
 		List<Product> h =this.productDaoImpl.findHot(hot);
 		return h;
+	}
+	
+	public void updateName(int id,String name){
+		this.productDaoImpl.updateName(id, name);
+	}
+	
+	public void updateDescription(int id,String d){
+		this.productDaoImpl.updateDescription(id, d);
+	}
+	
+	public void updateDate(int id,Date date){
+		this.productDaoImpl.updateDate(id, date);
+	}
+	
+	public void updateHot(int id,String hot){
+		this.productDaoImpl.updateHot(id, hot);
+	}
+	
+	public void updatetype(int id,int type){
+		this.productDaoImpl.updatetype(id, type);
+	}
+	
+	public void updateSize(int id,int sizeId){
+		this.productDaoImpl.updateSize(id, sizeId);
 	}
 }

@@ -127,20 +127,12 @@
     }</style>
 <link href="<%=path %>/css/layer.css" type="text/css" rel="styleSheet" id="layermcss"></head>
 <body class="bg3">
-    <header class="sj_header">
-        <div class="row">
-            <div class="col-xs-3"><span class="logo_sj"><a href="http://www.dingdangao.net.cn/MyOrder/MyStatePayNon#"><img src="<%=path %>/images/alogo7_03.png"></a></span></div>
-            <div class="col-xs-9 text-right">
-                <a class="yuyue_sj pull-right" href="http://www.dingdangao.net.cn/MyOrder/MyStatePayNon#">在线预约</a>
-            </div>
-        </div>
-    </header>
     <header class="web_header">
         <div class="container colxs">
-            <div class="pull-left logo"><a href="http://www.dingdangao.net.cn/Index/Index"><img src="<%=path %>/images/alogo7_03.png" width="181" height="39"></a></div>
-<form action="http://www.dingdangao.net.cn/Product/List1" id="list_form_type" method="post">                <input type="hidden" name="typeid" id="typeid">
+            <div class="pull-left logo"><a href=""><img src="<%=path %>/images/alogo7_03.png" width="181" height="39"></a></div>
+<form action="" id="list_form_type" method="post">                <input type="hidden" name="typeid" id="typeid">
                 <ul class="menu"> 
-                    <li class=""> <a href="<%=path %>/index.jsp">首页</a></li>
+                    <li class=""> <a href="<%=path %>/frontIndex.jsp">首页</a></li>
                     <li class=""> <a href="<%=path %>/product/allProduct">所有产品</a></li>
                     <li class=""> <a href="<%=path %>/product/hot?hot=1">热门产品</a></li>
                     <li class="">
@@ -156,8 +148,8 @@
                 <div class=" pull-right menu_right">
                     <span class="co_g3 menu_nav">电话：400-6340-500</span>
                     <a href="<%=path %>/cart/productCart?userId=${user.id}" class="co_g3 menu_nav">我的购物车</a>
-                    <a href="<%=path %>/login.jsp" onclick="loginMember()" id="a"><i class="co_g3"></i>登录</a>
-                    <a href="<%=path%>/regist.jsp"  id="b">注册</a>
+                    <a href="<%=path %>/frontLogin.jsp" onclick="loginMember()" id="a"><i class="co_g3"></i>登录</a>
+                    <a href="<%=path%>/frontRegist.jsp"  id="b">注册</a>
                 </div>
 </form>          </div>
     </header>
@@ -265,14 +257,14 @@
 </script>
 <div class="pull-left me_side">
     <div class="me_style">
-            <a class="tx" title="" href="" style="background-image:url(${user.head});"></a>
+            <a class="tx" title="" href="" style="background-image:url(<%=path %>/images/toux.jpg);"></a>
         <h3>${user.name }</h3>
     <div class="clearfix"></div>
 </a>
         <h2 class="order_title">我的订单</h2>
         <ul class="mes_list">
             <li class="cur">
-                <a href="<%=path %>/person.jsp">
+                <a href="<%=path %>/order/unpaid">
                     <span class="fa fa-reply-all"></span>待付款订单
                 </a>
             </li>
@@ -284,7 +276,7 @@
        </ul>
         <h2 class="order_title">个人信息</h2>
         <ul class="mes_list">
-            <li><a href="<%=path %>/information.jsp" ><span class="fa fa-info"></span>个人资料</a></li>
+            <li><a href="<%=path %>/personInfo.jsp" ><span class="fa fa-info"></span>个人资料</a></li>
             <li><a href="<%=path %>/address/user"><span class="fa fa-truck"></span>收货地址</a></li>
         </ul>
     </div>
@@ -305,34 +297,41 @@
             <h2 style="font-size:20px; font-weight:500; margin-top:0; border-bottom:#ddd solid 1px; line-height:40px;">已付款订单</h2>
             <table class="me_tabl_list" width="0" border="0" cellspacing="0" cellpadding="0">
                 <tbody><tr>
-                    <th width="350" align="left" scope="col">商品</th>
+                    <th width="200" align="left" scope="col">商品</th>
                     <th width="137" align="center" scope="col">单价</th>
                     <th width="137" align="center" scope="col">数量</th>
-                    <th width="139" align="center" scope="col">小计</th>
+                    <th width="139" align="center" scope="col">价钱</th>
+                    <th width="139" align="center" scope="col">地址</th>
                     <th align="center" scope="col">状态</th>
                     <th align="center" scope="col">操作</th>
                 </tr>
             </tbody>
              <c:forEach items="${ppl }" var="c" >
         		<tr indexpid="11" id="li1-11" >
-                    <td valign="middle" align="left"><a href="javascript:void(0);"><img width="48" height="48" src="${c.productImg }" class="d_pic"></a><span class="d_title">${c.productName }<br> <i>约${c.size }磅</i></span></td>
+                    <td valign="middle" align="left"><a href="javascript:void(0);"><img width="48" height="48" src="${c[0].product.img1 }" class="d_pic"></a><span class="d_title">${c[0].product.name }<br> <i>约${c[0].size }磅</i></span></td>
                     <td valign="middle" iscookie="0" show="188.00" mid="11" pid="1004" align="center">
-                        ￥<span>${c.productPrice }.00</span>
+                        ￥<span>${c[0].product.price }.00</span>
                     </td>
                     <td valign="middle">
-                    	<span class="dd_num2" style="display:none;">${c.count }</span>
+                    	<span class="dd_num2" style="display:none;">${c[0].count }</span>
                     	<span class="dd_num">
-                    		<input name="" type="text" value="${c.count }">
+                    		<input name="" type="text" value="${c[0].count }">
                     	</span>
                     </td>
-                    <td class="xj" valign="middle" align="center">${c.productPrice*c.count}</td>
+                    <td class="xj" valign="middle" align="center">${c[0].product.price*c[0].count}</td>
+                    <td mid="11" align="center">${c[1].address.address }</td>
                     <td mid="11" align="center">已付款</td>
                     <td mid="11" align="center">
-                    	<a href="<%=path %>/order/deletePaid?id=${c.productId}&size=${c.size}">删除</a>
+                    	<a href="<%=path %>/order/deletePaid?id=${c[0].id}">删除</a>
                     </td>
                 </tr>
         	</c:forEach>
             </table>
+        </div>
+        <div>
+        	<form action="<%=path %>/user/quit">
+        		<input type="submit" value="退出" />
+        	</form>
         </div>
         <div class="spacer"></div>
 	</div>

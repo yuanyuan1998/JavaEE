@@ -14,6 +14,13 @@ public class AddressDaoImpl {
 	@Resource
 	private SessionFactory sessionFactory;
 	
+	public Address findById(int id){
+		String hpl = "from Address where id = ?";
+		Query query = this.sessionFactory.getCurrentSession().createQuery(hpl);
+		query.setParameter(0, id);
+		return (Address) query.uniqueResult();
+	}
+	
 	public List<Address> findAddress(int id){
 		String hpl = "from Address where userId = ?";
 		Query query = this.sessionFactory.getCurrentSession().createQuery(hpl);

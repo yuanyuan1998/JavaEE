@@ -1,26 +1,26 @@
 package com.cake.entity.user;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.GenericGenerator;
 
+import com.cake.entity.product.Product;
 @Entity
 @Table(name="orderproduct")
 public class OrderProduct {
 	private int id;
-	private int userId;
-	private int productId;
+	private Orders orders;
+	private Product product;
 	private int size;
 	private int count;
-	private int addressId;
 	private String orderType;
-	private int productPrice;
-	private String productName;
-	private String productImg;
+	private String type;
 	
 	@Id
     @GeneratedValue(generator="my_gen")
@@ -31,17 +31,21 @@ public class OrderProduct {
 	public void setId(int id) {
 		this.id = id;
 	}
-	public int getUserId() {
-		return userId;
+	@ManyToOne(cascade=CascadeType.ALL)
+    @JoinColumn(name="orderId")
+	public Orders getOrders() {
+		return orders;
 	}
-	public void setUserId(int userId) {
-		this.userId = userId;
+	public void setOrders(Orders orders) {
+		this.orders = orders;
 	}
-	public int getProductId() {
-		return productId;
+	@ManyToOne
+    @JoinColumn(name="productId")
+	public Product getProduct() {
+		return product;
 	}
-	public void setProductId(int productId) {
-		this.productId = productId;
+	public void setProduct(Product product) {
+		this.product = product;
 	}
 	public int getSize() {
 		return size;
@@ -55,37 +59,16 @@ public class OrderProduct {
 	public void setCount(int count) {
 		this.count = count;
 	}
-	public int getAddressId() {
-		return addressId;
-	}
-	public void setAddressId(int addressId) {
-		this.addressId = addressId;
-	}
 	public String getOrderType() {
 		return orderType;
 	}
 	public void setOrderType(String orderType) {
 		this.orderType = orderType;
 	}
-	@Formula(value="(select p.price from product as p where p.id = productId)") 
-	public int getProductPrice() {
-		return productPrice;
+	public String getType() {
+		return type;
 	}
-	public void setProductPrice(int productPrice) {
-		this.productPrice = productPrice;
-	}
-	@Formula(value="(select p.name from product as p where p.id = productId)") 
-	public String getProductName() {
-		return productName;
-	}
-	public void setProductName(String productName) {
-		this.productName = productName;
-	}
-	@Formula(value="(select p.img1 from product as p where p.id = productId)") 
-	public String getProductImg() {
-		return productImg;
-	}
-	public void setProductImg(String productImg) {
-		this.productImg = productImg;
+	public void setType(String type) {
+		this.type = type;
 	}
 }

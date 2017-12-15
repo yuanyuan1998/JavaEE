@@ -10,16 +10,28 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cake.dao.product.ProductDaoImpl;
 import com.cake.dao.product.ProductSizeDaoImpl;
 import com.cake.entity.product.Product;
-import com.cake.entity.product.ProductSize;
+import com.cake.entity.product.ProductType;
+import com.cake.entity.product.Size;
 
 @Service
-@Transactional(readOnly=true)
 public class ProductSizeServiceImpl {
 	@Resource
 	private ProductSizeDaoImpl productSizeDaoImpl;
 	
-	public List<ProductSize> findSize(int id){
-		List<ProductSize> lp=this.productSizeDaoImpl.findById(id);
+	public List<Size> findSize(int id){
+		List<Size> lp=this.productSizeDaoImpl.findById(id);
 		return lp;
+	}
+	
+	public void save(Size size){
+		this.productSizeDaoImpl.save(size);
+	}
+	
+	public List<Size> find(){
+		return this.productSizeDaoImpl.find();
+	}
+	
+	public void delete(int id){
+		this.productSizeDaoImpl.delete(id);
 	}
 }

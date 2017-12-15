@@ -8,6 +8,7 @@ import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
+import com.cake.entity.product.Product;
 import com.cake.entity.user.Address;
 import com.cake.entity.user.User;
 
@@ -15,6 +16,24 @@ import com.cake.entity.user.User;
 public class UserDaoImpl {
 	@Resource
 	private SessionFactory sessionFactory;
+	
+	public List<User> findAll(){
+		return this.sessionFactory.getCurrentSession().createQuery("from "+User.class.getSimpleName()).list();
+	} 
+	
+	public List<User> findByNames(String name){
+		String hql = "from User u where u.name like ? ";
+		Query query=(Query) this.sessionFactory.getCurrentSession().createQuery(hql);
+		query.setString(0, "%"+name+"%");  
+		return query.list();
+	}
+	
+	public void delete(int id){
+			String hql = "delete from User where id = ? ";
+			Query query=(Query) this.sessionFactory.getCurrentSession().createQuery(hql);
+			query.setParameter(0,id);
+			query.executeUpdate();  
+	}
 	
 	public User save(User u){
 		if(u.getName() != "" && u.getPassword() != "" && u.getEmail() != "" && u.getPhoneNum() != ""){

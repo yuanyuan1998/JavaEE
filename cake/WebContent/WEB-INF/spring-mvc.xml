@@ -20,7 +20,7 @@
 		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
 	</context:component-scan>
 	
-    <mvc:resources location="/static/" mapping="/static/**"/>
+    <mvc:resources location="/images/" mapping="/resource/**" />
 	
 	<!-- 定义JSP文件的位置 --> 
 	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">

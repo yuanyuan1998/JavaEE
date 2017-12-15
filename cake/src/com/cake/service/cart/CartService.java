@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.cake.dao.cart.CartDaoImpl;
 import com.cake.dao.product.ProductDaoImpl;
 import com.cake.entity.cart.Cart;
-import com.cake.entity.cart.CartItem;
 import com.cake.entity.product.Product;
 
 @Service
@@ -22,23 +21,23 @@ public class CartService {
 		this.cartDaoImpl.save(c);
 	}
 	
-	public Cart findByProductIdSize(int productId,int size){
-		return this.cartDaoImpl.findByProductIdSize(productId, size);
+	public Cart findByProductIdSize(int productId,int size,int userId){
+		return this.cartDaoImpl.findByProductIdSize(productId, size,userId);
 	}
 	
 	public List<Cart> findByUserId(int userId){
 		return this.cartDaoImpl.findByUserId(userId);
 	}
 	
-	public void delete(int productId,int size){
-		this.cartDaoImpl.delete(productId,size);
+	public void delete(int id){
+		this.cartDaoImpl.deleteById(id);
 	}
 	
-	public void addCount(int productId,int size,int count){
-		this.cartDaoImpl.addCount(productId, size,count);
+	public void addCount(int id,int count){
+		this.cartDaoImpl.addCount(id,count);
 	}
 	
-	public void jianCount(int productId,int size){
-		this.cartDaoImpl.jianCount(productId, size);
+	public void jianCount(int id){
+		this.cartDaoImpl.jianCount(id);
 	}
 }

@@ -14,6 +14,18 @@ public class UserServiceImpl {
 	@Resource
 	private UserDaoImpl userDaoImpl;
 	
+	public List<User> findAll(){
+		return this.userDaoImpl.findAll();
+	}
+	
+	public List<User> findByNames(String name){
+		return this.userDaoImpl.findByNames(name);
+	}
+	
+	public void delete(int id){
+		this.userDaoImpl.delete(id);
+	}
+	
 	public User save(User u){
 		User u1 = this.userDaoImpl.save(u);
  		if( u1 != null){

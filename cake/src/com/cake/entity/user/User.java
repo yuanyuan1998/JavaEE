@@ -1,9 +1,14 @@
 package com.cake.entity.user;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.GenericGenerator;
@@ -17,6 +22,8 @@ public class User {
 	private String phoneNum;
 	private String email;;
 	private String head;
+	private List<Address> address = new ArrayList<Address>();
+	private List<Orders> orders = new ArrayList<Orders>();
 	
 	@Id
     @GeneratedValue(generator="my_gen")
@@ -60,6 +67,13 @@ public class User {
 	}
 	public void setHead(String head) {
 		this.head = head;
+	}
+	@OneToMany(mappedBy="user", targetEntity=Address.class, cascade=CascadeType.ALL)
+	public List<Address> getAddress() {
+		return address;
+	}
+	public void setAddress(List<Address> address) {
+		this.address = address;
 	}
 	
 }

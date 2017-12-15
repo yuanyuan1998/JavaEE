@@ -1,0 +1,68 @@
+/*登录*/
+.login{
+	width:100%;
+	position:relative;
+	padding-top:60px;
+}
+.login .bg_img{
+	width:100%;
+	position:absolute;
+	left:0px;
+	top:0px;
+	overflow:hidden;
+	z-index:-1;
+}
+.login .bg_img img{
+	width:1920px;
+	height:720px;
+	
+}
+.login .logo{
+	width:261px;
+	height:63px;
+	margin:0px auto;
+	color:#0000c6;
+	font-size:28px;
+}
+.login .login_m{
+	width:473px;
+	height:483px;
+	margin:0px auto;
+	margin-top:20px;
+	text-align:center;
+}
+.login .login_m ul{
+	width:347px;
+	padding-top:30px;
+	text-align:left;
+	margin-left:62px;
+}
+
+.login .login_m ul li{
+	width:100%;
+	height:52px;
+	background:url(../images/l_bg.png) no-repeat;
+	margin-top:8px;
+}
+.login .login_m ul li.wz{
+	height:25px;
+	line-height:40px;
+	font-size:14px;
+	color:#656565;
+	background:none;
+}
+.login .login_m ul li input{
+	width:327px;
+	height:40px;
+	margin-left:10px;
+	margin-top:6px;
+	border:0px;
+}
+.login_m ul li.l_btn{
+	width:345px;
+	height:51px;
+	text-align:center;
+	margin-top:40px;
+	color:#0000c6;
+}
+/*登录*/

@@ -43,14 +43,40 @@ public class UserController {
 	@Resource
 	private CartService cartServlet;
 	
+	@RequestMapping(value="find")
+	public String findByName(String name,HttpServletRequest request){
+		List<User> uln = this.userServiceImpl.findByNames(name);
+		request.setAttribute("ul", uln);
+		return "backindex";
+	}
+	
+	@RequestMapping(value="/all")
+	public String findAll(HttpServletRequest request){
+		List<User> ul = this.userServiceImpl.findAll();
+		request.setAttribute("ul", ul);
+		return "backindex";
+	}
+	
+	@RequestMapping(value="/delete")
+	public String delete(@RequestParam("id") int id,HttpServletRequest request){
+		this.userServiceImpl.delete(id);
+		return "redirect:/user/all";
+	}
+	
+	@RequestMapping(value="/quit")
+	public String quit(HttpSession session){
+		session.removeAttribute("user");
+		return "frontIndex";
+	}
+	
 	@RequestMapping(value="/regist")
 	public String regist(User u,HttpSession session){
 		User u1 = this.userServiceImpl.save(u);
 		if(u1 != null){
 			session.setAttribute("user", u1);
-			return "index";
+			return "frontIndex";
 		}else
-			return "regist";
+			return "frontRegist";
 	}
 	
 	@RequestMapping(value="/login")
@@ -68,14 +94,14 @@ public class UserController {
 				}
 				request.setAttribute("countNum",countNum);
 				request.setAttribute("cartlist", cartlist);
-				return "index";
+				return "frontIndex";
 			}else{
 				request.setAttribute("errorinfo2", "密码填写错误");
-				return "login";
+				return "frontLogin";
 			}
 		}else{
 			request.setAttribute("errorinfo1", "用户名填写错误");
-			return "login";
+			return "frontLogin";
 		}
 	}
 	
@@ -115,7 +141,7 @@ public class UserController {
 		}
 		User u2 = this.userServiceImpl.findById(u1.getId());
 		session.setAttribute("user", u2);
-		return "information";
+		return "personInfo";
 	}
 	
 	@RequestMapping(value="upload")
@@ -141,9 +167,8 @@ public class UserController {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }    
-            String truePath=request.getContextPath() + "/" + "images" + "/"+ fileName;
-			this.userServiceImpl.updateHead(u1.getId(),truePath);
+			this.userServiceImpl.updateHead(u1.getId(),fileName);
 		}
-		return "information";
+		return "personInfo";
 	}
 }

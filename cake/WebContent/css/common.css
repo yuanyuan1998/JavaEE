@@ -1,0 +1,60 @@
+a{
+	color:#656565;
+}
+img{
+	padding:0px;
+	margin:0px;
+	border:0px;
+}
+/*头部*/
+.head{
+	width:100%;
+	height:50px;
+	min-width:1200px;
+	margin:0px auto;
+	background:#3E4047;
+}
+.head .logo{
+	width:40%;
+	float:left;
+	text-align:left;
+}
+.head .logo img{
+	width:218px;
+	height:33px;
+	margin:8px 5px 15px 20px;
+	vertical-align:top;
+}
+/*后台首页*/
+.m_head{
+	width:100%;
+	height:50px;
+	min-width:1200px;
+	margin:0px auto;
+}
+.m_head .frame_h{
+	width:100%;
+	height:50px;
+	overflow:hidden;
+}
+.m_body{
+	width:100%;
+	min-width:1200px;
+	margin:0px auto;
+}
+.m_body .m_left{
+	width:226px;
+	float:left;
+}
+.m_left .frame_l{
+	width:226px;
+	float:left;
+}
+.m_body .m_right{
+	min-width:975px;
+	float:left;
+}
+.m_right .frame_r{
+	width:100%;
+}
+/*首台首页*/

@@ -6,6 +6,7 @@ import javax.annotation.Resource;
 import com.cake.dao.user.OrderDaoImpl;
 import com.cake.entity.user.Address;
 import com.cake.entity.user.OrderProduct;
+import com.cake.entity.user.Orders;
 
 import org.springframework.stereotype.Service;
 
@@ -14,8 +15,24 @@ public class OrderServiceImpl {
 	@Resource
 	private OrderDaoImpl OrderDaoImpl;
 	
-	public void save(OrderProduct o){
+	public void save(Orders o){
 		this.OrderDaoImpl.save(o);
+	}
+	
+	public List<Orders> findByType(String orderType){
+		return this.OrderDaoImpl.findByType(orderType);
+	}
+	
+	public void saveOrderProduct(OrderProduct op){
+		this.OrderDaoImpl.saveOrderProduct(op);
+	}
+	
+	public List<Orders> findAll(){
+		return this.OrderDaoImpl.findAll();
+	}
+	
+	public void delete(int id){
+		this.OrderDaoImpl.delete(id);
 	}
 	
 	public List<OrderProduct> findUnPaidOrder(int userId){
@@ -38,14 +55,14 @@ public class OrderServiceImpl {
 		return this.OrderDaoImpl.findByUserProductSize(userId, productId, size);
 	}
 	
-	public void deleteUnpaid(int userId,int productId,int size){
-		this.OrderDaoImpl.deleteUnpaid(userId, productId, size);
+	public void deleteUnpaid(int id){
+		this.OrderDaoImpl.deleteUnpaid(id);
 	}
-	public void buyUnpaid(int userId,int productId,int size){
-		 this.OrderDaoImpl.buyUnpaid(userId, productId, size);
+	public void buyUnpaid(int id){
+		 this.OrderDaoImpl.buyUnpaid(id);
 	}
 	
-	public void deletepaid(int userId,int productId,int size){
-		this.OrderDaoImpl.deletepaid(userId, productId, size);
+	public void deletepaid(int id){
+		this.OrderDaoImpl.deletepaid(id);
 	}
 }

@@ -11,7 +11,6 @@ import org.hibernate.annotations.GenericGenerator;
 @Table(name="producttype")
 public class ProductType {
 	private int id;
-	private int productId;
 	private String type;
 	
 	@Id
@@ -22,12 +21,6 @@ public class ProductType {
 	}
 	public void setId(int id) {
 		this.id = id;
-	}
-	public int getProductId() {
-		return productId;
-	}
-	public void setProductId(int productId) {
-		this.productId = productId;
 	}
 	public String getType() {
 		return type;

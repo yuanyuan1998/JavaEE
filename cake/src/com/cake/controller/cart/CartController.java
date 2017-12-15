@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.cake.entity.cart.Cart;
-import com.cake.entity.cart.CartItem;
 import com.cake.entity.user.User;
 import com.cake.service.cart.CartService;
 
@@ -46,7 +45,7 @@ public class CartController {
 		}
 		session.setAttribute("countNum", countNum);
 		session.setAttribute("cartlist", cartlist);
-		return "cart";
+		return "frontCart";
 	}
 	
 	@RequestMapping("/addProduct")
@@ -58,9 +57,9 @@ public class CartController {
 			out.print(1);
 		}else{
 			List<Cart> cartlist1 = this.cartServlet.findByUserId(user.getId());
-			Cart c1 = this.cartServlet.findByProductIdSize(id, Integer.parseInt(size));
+			Cart c1 = this.cartServlet.findByProductIdSize(id, Integer.parseInt(size),user.getId());
 			if(c1 != null){
-				this.cartServlet.addCount(id, Integer.parseInt(size), count);
+				this.cartServlet.addCount(c1.getId(), count);
 			}else{
 				Cart c = new Cart();
 				c.setProductId(id);
@@ -81,9 +80,9 @@ public class CartController {
 			out.print(1);
 		}else{
 			List<Cart> cartlist1 = this.cartServlet.findByUserId(user.getId());
-			Cart c1 = this.cartServlet.findByProductIdSize(id, Integer.parseInt(size));
+			Cart c1 = this.cartServlet.findByProductIdSize(id, Integer.parseInt(size),user.getId());
 			if(c1 != null){
-				this.cartServlet.addCount(id, Integer.parseInt(size), count);
+				this.cartServlet.addCount(c1.getId(), count);
 			}else{
 				Cart c = new Cart();
 				c.setProductId(id);
@@ -98,22 +97,27 @@ public class CartController {
 	
 	@RequestMapping("/deleteProduct")
 	public String deleteProduct(@RequestParam("id") int id,@RequestParam("size") int size,@RequestParam("count") int count,HttpSession session){
-		this.cartServlet.delete(id, size);
+		User user = (User) session.getAttribute("user");
+		Cart c = this.cartServlet.findByProductIdSize(id, size, user.getId());
+		this.cartServlet.delete(c.getId());
 		return "redirect:/cart/productCart";
 	}
 	
 	@RequestMapping("/jianCount")
 	public String jianCount(@RequestParam("id") int id,@RequestParam("size") int size,@RequestParam("count") int count,HttpSession session){
-		Cart c = this.cartServlet.findByProductIdSize(id, size);
+		User user = (User) session.getAttribute("user");
+		Cart c = this.cartServlet.findByProductIdSize(id, size, user.getId());
 		if(c.getCount() > 1){
-			this.cartServlet.jianCount(id, size);
+			this.cartServlet.jianCount(c.getId());
 		}
 		return "redirect:/cart/productCart";
 	}
 	
 	@RequestMapping("/addCount")
 	public String addCount(@RequestParam("id") int id,@RequestParam("size") int size,@RequestParam("count") int count,HttpSession session){
-		this.cartServlet.addCount(id, size, count);
+		User user = (User) session.getAttribute("user");
+		Cart c = this.cartServlet.findByProductIdSize(id, size, user.getId());
+		this.cartServlet.addCount(c.getId(),count);
 		return "redirect:/cart/productCart";
 	}
 	

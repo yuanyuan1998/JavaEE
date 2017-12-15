@@ -31,13 +31,13 @@ public class AddressController {
 			la = this.AddressServiceImpl.findAddress(u.getId());
 		}
 		request.setAttribute("la", la);
-		return "buy";
+		return "frontBuy";
 	}
 	
 	@RequestMapping(value="orderAdd", method = RequestMethod.POST)
 	public String orderAddAddress(HttpSession session,Address address,HttpServletRequest request){
 		User u = (User)session.getAttribute("user");
-		address.setUserId(u.getId());
+		address.setUser(u);
 		this.AddressServiceImpl.addAddress(address);
 		return "redirect:/address/order";
 	}
@@ -74,13 +74,13 @@ public class AddressController {
 			la = this.AddressServiceImpl.findAddress(u.getId());
 		}
 		request.setAttribute("la", la);
-		return "address";
+		return "personAddress";
 	}
 	
 	@RequestMapping(value="userAdd", method = RequestMethod.POST)
 	public String userAddAddress(HttpSession session,Address address){
 		User u = (User)session.getAttribute("user");
-		address.setUserId(u.getId());
+		address.setUser(u);
 		this.AddressServiceImpl.addAddress(address);
 		return "redirect:/address/user";
 	}

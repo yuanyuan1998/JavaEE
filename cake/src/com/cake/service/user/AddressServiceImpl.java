@@ -18,6 +18,11 @@ import com.cake.entity.user.User;
 public class AddressServiceImpl {
 	@Resource
 	private AddressDaoImpl AddressDaoImpl;
+	
+	public Address findById(int id){
+		return this.AddressDaoImpl.findById(id);
+	}
+	
 	public List<Address> findAddress(int id){
 		List<Address> la = this.AddressDaoImpl.findAddress(id);
 		if(la != null)
@@ -27,7 +32,7 @@ public class AddressServiceImpl {
 	}
 	
 	public Address addAddress(Address address){
-		List<Address> la = this.AddressDaoImpl.findAddress(address.getUserId());
+		List<Address> la = this.AddressDaoImpl.findAddress(address.getUser().getId());
 		for(Address a:la){
 			if(a.getName().equals(address.getName()) && a.getPhoneNum().equals(address.getPhoneNum()) && a.getAddress().equals(address.getAddress())){
 				return null;

@@ -6,7 +6,6 @@
 	String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";  
 %> 
 <!DOCTYPE html>
-<!-- saved from url=(0050)http://www.dingdangao.net.cn/MyOrder/MyStatePayNon -->
 <html xmlns:wb="http://open.weibo.com/wb"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="renderer" content="webkit">
@@ -24,8 +23,7 @@
     <script src="<%=path %>/js/bootstrap.min.js.下载" type="text/javascript"></script>
     <script src="<%=path %>/js/holder.min.js.下载" type="text/javascript"></script>
     <script src="<%=path %>/js/jquery.easing.1.3.min.js.下载" type="text/javascript"></script>
-    <script src="<%=path %>/js/jquery.bxslider.min.js.下载" type="text/javascript"></script>
-    
+    <script src="<%=path %>/js/jquery.bxslider.min.js.下载" type="text/javascript"></script>    
     <script src="<%=path %>/js/region.js.下载" type="text/javascript"></script>
     <script src="<%=path %>/js/product.js.下载"></script>
     <script>
@@ -127,18 +125,10 @@
     }</style>
 <link href="<%=path %>/css/layer.css" type="text/css" rel="styleSheet" id="layermcss"></head>
 <body class="bg3">
-    <header class="sj_header">
-        <div class="row">
-            <div class="col-xs-3"><span class="logo_sj"><a href="http://www.dingdangao.net.cn/MyOrder/MyStatePayNon#"><img src="<%=path %>/images/alogo7_03.png"></a></span></div>
-            <div class="col-xs-9 text-right">
-                <a class="yuyue_sj pull-right" href="http://www.dingdangao.net.cn/MyOrder/MyStatePayNon#">在线预约</a>
-            </div>
-        </div>
-    </header>
     <header class="web_header">
         <div class="container colxs">
-            <div class="pull-left logo"><a href="http://www.dingdangao.net.cn/Index/Index"><img src="<%=path %>/images/alogo7_03.png" width="181" height="39"></a></div>
-<form action="http://www.dingdangao.net.cn/Product/List1" id="list_form_type" method="post">                <input type="hidden" name="typeid" id="typeid">
+            <div class="pull-left logo"><a href=""><img src="<%=path %>/images/alogo7_03.png" width="181" height="39"></a></div>
+<form action="" id="list_form_type" method="post">                <input type="hidden" name="typeid" id="typeid">
                 <ul class="menu"> 
                     <li class=""> <a href="<%=path %>/index.jsp">首页</a></li>
                     <li class=""> <a href="<%=path %>/product/allProduct">所有产品</a></li>
@@ -156,8 +146,8 @@
                 <div class=" pull-right menu_right">
                     <span class="co_g3 menu_nav">电话：400-6340-500</span>
                     <a href="<%=path %>/cart/productCart?userId=${user.id}" class="co_g3 menu_nav">我的购物车</a>
-                    <a href="<%=path %>/login.jsp" onclick="loginMember()" id="a"><i class="co_g3"></i>登录</a>
-                    <a href="<%=path%>/regist.jsp"  id="b">注册</a>
+                    <a href="<%=path %>/frontLogin.jsp" onclick="loginMember()" id="a"><i class="co_g3"></i>登录</a>
+                    <a href="<%=path%>/frontRegist.jsp"  id="b">注册</a>
                 </div>
 </form>          </div>
     </header>
@@ -282,7 +272,7 @@
        </ul>
         <h2 class="order_title">个人信息</h2>
         <ul class="mes_list">
-            <li><a href="<%=path %>/information.jsp" ><span class="fa fa-info"></span>个人资料</a></li>
+            <li><a href="<%=path %>/personInfo.jsp" ><span class="fa fa-info"></span>个人资料</a></li>
             <li><a href="<%=path %>/address/user"><span class="fa fa-truck"></span>收货地址</a></li>
         </ul>
     </div>
@@ -303,37 +293,44 @@
             <h2 style="font-size:20px; font-weight:500; margin-top:0; border-bottom:#ddd solid 1px; line-height:40px;">待付款订单</h2>
             <table class="me_tabl_list" width="0" border="0" cellspacing="0" cellpadding="0">
                 <tbody><tr>
-                    <th width="350" align="left" scope="col">商品</th>
+                    <th width="200" align="left" scope="col">商品</th>
                     <th width="137" align="center" scope="col">单价</th>
                     <th width="137" align="center" scope="col">数量</th>
                     <th width="139" align="center" scope="col">小计</th>
+                    <th width="139" align="center" scope="col">地址</th>
                     <th align="center" scope="col">状态</th>
                     <th align="center" scope="col">操作</th>
                 </tr>
             </tbody>
             <c:forEach items="${uppl }" var="u" >
         		<tr indexpid="11" id="li1-11" >
-                    <td valign="middle" align="left"><a href="javascript:void(0);"><img width="48" height="48" src="${u.productImg }" class="d_pic"></a><span class="d_title">${u.productName }<br> <i>约${u.size }磅</i></span></td>
+                    <td valign="middle" align="left"><a href="javascript:void(0);"><img width="48" height="48" src="${u[0].product.img1 }" class="d_pic"></a><span class="d_title">${u[0].product.name }<br> <i>约${u[0].size }磅</i></span></td>
                     <td valign="middle" iscookie="0" show="188.00" mid="11" pid="1004" align="center">
-                        ￥<span>${u.productPrice }.00</span>
+                        ￥<span>${u[0].product.price }.00</span>
                     </td>
                     <td valign="middle">
-                    	<span class="dd_num2" style="display:none;">${u.count }</span>
+                    	<span class="dd_num2" style="display:none;">${u[0].count }</span>
                     	<span class="dd_num">
-                    		<a href="<%=path %>/order/jianCount?id=${u.productId}&size=${u.size}&count=${u.count}">-</a>
-                    		<input name="" type="text" value="${u.count }">
-                    		<a href="<%=path %>/order/addCount?id=${u.productId}&size=${u.size}&count=${u.count}">+</a>
+                    		<a href="<%=path %>/order/jianCount?id=${u[0].product.id}&size=${u[0].size}&count=${u[0].count}">-</a>
+                    		<input name="" type="text" value="${u[0].count }">
+                    		<a href="<%=path %>/order/addCount?id=${u[0].product.id}&size=${u[0].size}&count=${u[0].count}">+</a>
                     	</span>
                     </td>
-                    <td class="xj" valign="middle" align="center">${u.productPrice*u.count}</td>
+                    <td class="xj" valign="middle" align="center">${u[0].product.price*u[0].count}</td>
+                    <td mid="11" align="center">${u[1].address.address }</td>
                     <td mid="11" align="center">待付款</td>
                     <td mid="11" align="center">
-                    	<a href="<%=path %>/order/delete?id=${u.productId}&size=${u.size}">取消</a>
-                    	<a href="<%=path %>/order/buy?id=${u.productId}&size=${u.size}">购买</a>
+                    	<a href="<%=path %>/order/delete?id=${u[0].id}">取消</a>
+                    	<a href="<%=path %>/order/buy?id=${u[0].id}">购买</a>
                     </td>
                 </tr>
         	</c:forEach>
             </table>
+        </div>
+        <div>
+        	<form action="<%=path %>/user/quit">
+        		<input type="submit" value="退出" />
+        	</form>
         </div>
         <div class="spacer"></div>
 	</div>
